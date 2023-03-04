@@ -1,0 +1,56 @@
+const express = require("express");
+const router = express.Router();
+const auth = require("../../middleware/auth");
+const User = require("../../models/User");
+const { check, validationResult } = require("express-validator");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const config = require("config");
+const sendNotifications = require("../../middleware/notifications");
+
+//Follow Users
+router.post("/follow/:id", auth, async (req, res) => {
+  try {
+    var notificationUsers = [];
+    const followerUser = await User.findById(req.params.id).select("-password");
+    const followingUser = await User.findById(req.user.id).select("-password");
+    followerUser.followers.unshift(req.user.id);
+    followingUser.following.unshift(req.params.id);
+    await followerUser.save();
+    await followingUser.save();
+    notificationUsers.push(followerUser.pushToken);
+    sendNotifications(
+      notificationUsers,
+      "Reelmail",
+      `${followingUser.firstName} Started Following You`
+    );
+    return res.json({
+      followingUser,
+      msg: `You are now following`,
+      status: 200,
+    });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+//Unfollow Users
+router.post("/unfollow/:id", auth, async (req, res) => {
+  try {
+    const followerUser = await User.findById(req.params.id).select("-password");
+    const followingUser = await User.findById(req.user.id).select("-password");
+    var index = followingUser.following.indexOf(req.params.id);
+    followingUser.following.splice(index, 1);
+    await followingUser.save();
+    var index = followerUser.followers.indexOf(req.user.id);
+    followerUser.followers.splice(index, 1);
+    await followerUser.save();
+    return res.json({ status: 200, msg: "Unfollowed" });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+module.exports = router;
