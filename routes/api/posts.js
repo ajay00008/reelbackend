@@ -8,46 +8,59 @@ const uploadImageTos3Bucket = require("../../upload/upload");
 const sendNotifications = require('../../middleware/notifications')
 const aws = require("aws-sdk");
 const multer = require("multer");
+const multerS3 = require('multer-s3');
 
-const multerMemoryStorage = multer.memoryStorage();
-const multerUploadInMemory = multer({
-  storage: multerMemoryStorage,
-});
+
+
+// const multerMemoryStorage = multer.memoryStorage();
+// const multerUploadInMemory = multer({
+//   storage: multerMemoryStorage,
+// });
 
 aws.config.update({
   credentials: {
     accessKeyId: "AKIAXKJA67ZDLQXTQDET",
     secretAccessKey: "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",
-    region: "us-east-1",
+    region: "us-east-2",
   },
 });
+const fileFilter = (req, file, cb) => {
+  return file.mimetype
+}
 
-const S3 = new aws.S3({});
+s3 = new aws.S3();
+var upload = multer({
+  storage: multerS3({
+      s3: s3,
+      acl: 'public-read',
+      bucket: 'reelmails',
+      contentType: multerS3.AUTO_CONTENT_TYPE,
+      key: function (req, file, cb) {
+          console.log(file);
+          cb(null, file.originalname); //use Date.now() for unique file keys
+      }
+  })
+});
+
+
+// const S3 = new aws.S3({});
 
 
 // Create Post
-router.post("/",multerUploadInMemory.single("image"), auth, async (req, res) => {
-  const { text, postType, location } = req.files;
+router.post("/",upload.single('image'), auth, async (req, res) => {
+  const { text, postType, location } = req.body;
   try {
     const user = await User.findById(req.user.id).select("-password");
-    const image = await S3.upload({
-      Bucket: "reelmails",
-      Key: req.file.originalname,
-      Body: req.file.buffer,
-      ACL: "public-read",
-      ContentType: req.file.mimetype,
-    }).promise();
-    if (image) {
       const newPost = new Post({
         text: text,
         user: req.user.id,
-        media: image.Location,
+        media: req.file.originalname,
         postType: postType,
         location:location
       });
       const post = await newPost.save();
       return res.json({ post, status: 200 });
-    }
+    // }
   } catch (err) {
     console.log(err.message);
     res.status(500).send("Server Error");
