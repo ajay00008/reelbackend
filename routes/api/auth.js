@@ -91,14 +91,17 @@ router.post(
   "/register",
   multerUploadInMemory.single("image"),
   async (req, res) => {
-    const { email, password, firstName, lastName, gender } = req.body;
+    const { email, password, firstName, lastName, gender, username } = req.body;
     try {
       let user = await User.findOne({ email });
+      let checkUsername = await User.findOne({username})
       if (user) {
         return res
           .status(400)
           .json({ errors: [{ msg: "User already exist" }] });
-      }
+      } else if(checkUsername) {
+        return res.status(400).json({errors:[{msg: "Username already exist"}]})
+      } else {
 
       // const uploadResult = await S3.upload({
       //   Bucket: "reelmails",
@@ -114,6 +117,7 @@ router.post(
           password,
           firstName,
           lastName,
+          username
         });
   
         const salt = await bcrypt.genSalt(10);
@@ -138,6 +142,7 @@ router.post(
       // } else {
       //   res.status(500).send("Server error");
       // }
+        }
     } catch (err) {
       console.log(err.message);
       res.status(500).send("Server error");
