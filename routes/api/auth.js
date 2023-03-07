@@ -6,6 +6,23 @@ const { check, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("config");
+const aws = require("aws-sdk");
+const multer = require("multer");
+
+const multerMemoryStorage = multer.memoryStorage();
+const multerUploadInMemory = multer({
+  storage: multerMemoryStorage,
+});
+
+aws.config.update({
+  credentials: {
+    accessKeyId: "AKIAXKJA67ZDLQXTQDET",
+    secretAccessKey: "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",
+    region: "us-east-1",
+  },
+});
+
+const S3 = new aws.S3({});
 
 // GET USER
 router.get("/", auth, async (req, res) => {
@@ -72,20 +89,9 @@ router.post("/login", async (req, res) => {
 //REGISTER
 router.post(
   "/register",
-  [
-    check("firstName", "First Name is required").not().isEmpty(),
-    check("lastName", "Last Name is required").not().isEmpty(),
-    check("email", "Email is required").isEmail(),
-    check("password", "Enter Password With 6 Or More Characters").isLength({
-      min: 6,
-    }),
-  ],
+  multerUploadInMemory.single("image"),
   async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    const { email, password, firstName, lastName, media, gender } = req.files;
+    const { email, password, firstName, lastName, gender } = req.body;
     try {
       let user = await User.findOne({ email });
       if (user) {
@@ -94,17 +100,24 @@ router.post(
           .json({ errors: [{ msg: "User already exist" }] });
       }
 
-      var image = await uploadImageTos3Bucket(req.files);
-      if (image) {
+      const uploadResult = await S3.upload({
+        Bucket: "reelmails",
+        Key: req.file.originalname,
+        Body: req.file.buffer,
+        ACL: "public-read",
+        ContentType: req.file.mimetype,
+      }).promise();
+
+      if(uploadResult) {
         user = new User({
           email,
           password,
           firstName,
           lastName,
-          media,
+          media:uploadResult.Location,
           gender,
         });
-
+  
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(password, salt);
         await user.save();

@@ -9,13 +9,15 @@ connectDB();
 
 const PORT = process.env.PORT || 5000;
 
-app.use(
-  fileUpload({
-    limits: {
-      fileSize: 50 * 1024 * 1024,
-    },
-  })
-);
+// app.use(fileUpload())
+
+// app.use(
+//   fileUpload({
+//     limits: {
+//       fileSize: 50 * 1024 * 1024,
+//     },
+//   })
+// );
 
 
 app.use(
