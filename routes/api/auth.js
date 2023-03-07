@@ -71,7 +71,7 @@ router.post("/login", async (req, res) => {
     };
     jwt.sign(
       payLoad,
-      config.get("jwtSecret"),
+      'mysecrettoken',
       { expiresIn: 36000 },
       (err, token) => {
         if (err) {
@@ -128,7 +128,7 @@ router.post(
         };
         jwt.sign(
           payLoad,
-          config.get("jwtSecret"),
+          'mysecrettoken',
           { expiresIn: 36000 },
           (err, token) => {
             if (err) {
