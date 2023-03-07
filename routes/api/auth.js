@@ -100,22 +100,20 @@ router.post(
           .json({ errors: [{ msg: "User already exist" }] });
       }
 
-      const uploadResult = await S3.upload({
-        Bucket: "reelmails",
-        Key: req.file.originalname,
-        Body: req.file.buffer,
-        ACL: "public-read",
-        ContentType: req.file.mimetype,
-      }).promise();
+      // const uploadResult = await S3.upload({
+      //   Bucket: "reelmails",
+      //   Key: req.file.originalname,
+      //   Body: req.file.buffer,
+      //   ACL: "public-read",
+      //   ContentType: req.file.mimetype,
+      // }).promise();
 
-      if(uploadResult) {
+      // if(uploadResult) {
         user = new User({
           email,
           password,
           firstName,
           lastName,
-          media:uploadResult.Location,
-          gender,
         });
   
         const salt = await bcrypt.genSalt(10);
@@ -137,9 +135,9 @@ router.post(
             res.json({ token, status: 200, msg: "User Registered", user });
           }
         );
-      } else {
-        res.status(500).send("Server error");
-      }
+      // } else {
+      //   res.status(500).send("Server error");
+      // }
     } catch (err) {
       console.log(err.message);
       res.status(500).send("Server error");

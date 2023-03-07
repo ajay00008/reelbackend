@@ -6,19 +6,44 @@ const Post = require("../../models/Posts");
 const { check, validationResult } = require("express-validator");
 const uploadImageTos3Bucket = require("../../upload/upload");
 const sendNotifications = require('../../middleware/notifications')
+const aws = require("aws-sdk");
+const multer = require("multer");
+
+const multerMemoryStorage = multer.memoryStorage();
+const multerUploadInMemory = multer({
+  storage: multerMemoryStorage,
+});
+
+aws.config.update({
+  credentials: {
+    accessKeyId: "AKIAXKJA67ZDLQXTQDET",
+    secretAccessKey: "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",
+    region: "us-east-1",
+  },
+});
+
+const S3 = new aws.S3({});
+
 
 // Create Post
-router.post("/", auth, async (req, res) => {
-  const { text, postType } = req.files;
+router.post("/",multerUploadInMemory.single("image"), auth, async (req, res) => {
+  const { text, postType, location } = req.files;
   try {
     const user = await User.findById(req.user.id).select("-password");
-    var image = await uploadImageTos3Bucket(req.files);
+    const image = await S3.upload({
+      Bucket: "reelmails",
+      Key: req.file.originalname,
+      Body: req.file.buffer,
+      ACL: "public-read",
+      ContentType: req.file.mimetype,
+    }).promise();
     if (image) {
       const newPost = new Post({
         text: text,
         user: req.user.id,
         media: image.Location,
         postType: postType,
+        location:location
       });
       const post = await newPost.save();
       return res.json({ post, status: 200 });

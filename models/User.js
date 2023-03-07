@@ -20,11 +20,9 @@ const UserSchema = new mongoose.Schema({
     },
     media: {
         type: String,
-        required: true
     },
     gender: {
         type: String,
-        required: true
     },
     pushToken: {
         type: String

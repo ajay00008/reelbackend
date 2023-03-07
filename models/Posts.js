@@ -11,6 +11,9 @@ const PostSchema = new mongoose.Schema({
     media: {
         type: String
     },
+    location: {
+        type: String
+    },
     postType: {
         type: String
     },
