@@ -70,13 +70,30 @@ router.post("/",upload.single('image'), auth, async (req, res) => {
 // Get All Post
 router.get("/", auth, async (req, res) => {
   try {
-    const post = await Post.find().sort({ date: -1 });
+    const post = await Post.find().sort({ date: -1 }).populate('user').populate({
+      path: 'comments.user',
+      model:'user'
+    });
     return res.json({ post, status: 200 });
   } catch (err) {
     console.log(err.message);
     res.status(500).send("Server Error");
   }
 });
+
+router.get("/user/:id", auth, async (req, res) => {
+  try {
+    const post = await Post.find({ user:req.params.id }).populate('user').populate({
+      path: 'comments.user',
+      model:'user'
+    });
+    return res.json({ post, status: 200 });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
 
 // Get Post By Id
 router.get("/:id", auth, async (req, res) => {
@@ -111,13 +128,16 @@ router.delete("/:id", auth, async (req, res) => {
 router.put("/like/:id", auth, async (req, res) => {
   try {
     var notificationUsers = []
-    const post = await Post.findById(req.params.id).populate('user');
+    const post = await Post.findById(req.params.id).populate('user').populate({
+      path: 'comments.user',
+      model:'user'
+    });
     const user = await User.findById(req.user.id).select("-password")
     if (post.likes.filter((like) => like.user.toString() == req.user.id).length > 0) {
         var index = post.likes.indexOf(req.user.id)
         post.likes.splice(index,1)
         await post.save();
-        return res.status(400).json({msg:'Post Unliked', status:200});
+        return res.json({msg:'Post Unliked', status:200});
     } else {
         post.likes.unshift({ user: req.user.id });
         await post.save();
@@ -160,6 +180,25 @@ router.post("/comment/:id",[auth,[
         res.status(500).send("Server Error")
     }
 })
+
+
+// Get Post Comment By Id
+router.get("/comment/:id", auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id).populate({
+      path: 'comments.user',
+      model:'user'
+    });
+    if (!post) {
+      return res.status(404).json({ msg: "Post not found" });
+    }
+    var postComments = post?.comments
+    return res.json({ postComments, status: 200 });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+});
 
 
 // Delete Comment
