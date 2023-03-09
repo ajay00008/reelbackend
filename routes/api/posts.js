@@ -9,6 +9,7 @@ const sendNotifications = require('../../middleware/notifications')
 const aws = require("aws-sdk");
 const multer = require("multer");
 const multerS3 = require('multer-s3');
+const upload = require("../../middleware/upload");
 
 
 
@@ -17,30 +18,30 @@ const multerS3 = require('multer-s3');
 //   storage: multerMemoryStorage,
 // });
 
-aws.config.update({
-  credentials: {
-    accessKeyId: "AKIAXKJA67ZDLQXTQDET",
-    secretAccessKey: "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",
-    region: "us-east-2",
-  },
-});
-const fileFilter = (req, file, cb) => {
-  return file.mimetype
-}
+// aws.config.update({
+//   credentials: {
+//     accessKeyId: "AKIAXKJA67ZDLQXTQDET",
+//     secretAccessKey: "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",
+//     region: "us-east-2",
+//   },
+// });
+// const fileFilter = (req, file, cb) => {
+//   return file.mimetype
+// }
 
-s3 = new aws.S3();
-var upload = multer({
-  storage: multerS3({
-      s3: s3,
-      acl: 'public-read',
-      bucket: 'reelmails',
-      contentType: multerS3.AUTO_CONTENT_TYPE,
-      key: function (req, file, cb) {
-          console.log(file);
-          cb(null, file.originalname); //use Date.now() for unique file keys
-      }
-  })
-});
+// s3 = new aws.S3();
+// var upload = multer({
+//   storage: multerS3({
+//       s3: s3,
+//       acl: 'public-read',
+//       bucket: 'reelmails',
+//       contentType: multerS3.AUTO_CONTENT_TYPE,
+//       key: function (req, file, cb) {
+//           console.log(file);
+//           cb(null, file.originalname); //use Date.now() for unique file keys
+//       }
+//   })
+// });
 
 
 // const S3 = new aws.S3({});

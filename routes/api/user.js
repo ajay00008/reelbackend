@@ -7,6 +7,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("config");
 const sendNotifications = require("../../middleware/notifications");
+const upload = require("../../middleware/upload");
+
 
 
 //Get Profile By ID
@@ -66,5 +68,28 @@ router.post("/unfollow/:id", auth, async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
+
+
+//Update User Details
+router.post('/update',upload.single('image'),auth, async (req, res) => {
+  const { firstName, lastName, description } = req.body
+  try {
+      var user = await User.findById(req.user.id);
+      if (!user) {
+          return res.json({ msg: 'No User Found' })
+      }
+      user.firstName = firstName ? firstName : user.firstName;
+      user.lastName = lastName ? lastName : user.lastName;
+      user.description = description ? description : user.description;
+      user.media = req.file.originalname ? req.file.originalname : user.media;
+      await user.save();
+      return res.json({ msg: "User Updated", user  });
+
+  } catch (err) {
+      console.log(err)
+      res.status(500).send("Server Error")
+  }
+})
+
 
 module.exports = router;
