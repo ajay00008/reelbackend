@@ -8,6 +8,20 @@ const jwt = require("jsonwebtoken");
 const config = require("config");
 const sendNotifications = require("../../middleware/notifications");
 
+
+//Get Profile By ID
+router.get("/:id", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select("-password").populate('followers').populate('following');
+    return res.json(user);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Errro");
+  }
+});
+
+
+
 //Follow Users
 router.post("/follow/:id", auth, async (req, res) => {
   try {

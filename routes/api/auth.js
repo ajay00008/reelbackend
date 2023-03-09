@@ -27,7 +27,7 @@ const S3 = new aws.S3({});
 // GET USER
 router.get("/", auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user.id).select("-password").populate('followers').populate('following');
     res.json(user);
   } catch (err) {
     console.log(err.message);
