@@ -71,7 +71,7 @@ router.post("/",upload.single('image'), auth, async (req, res) => {
 // Get All Post
 router.get("/", auth, async (req, res) => {
   try {
-    const post = await Post.find().sort({ date: -1 }).populate('user').populate({
+    const post = await Post.find({postType:'Post'}).sort({ date: -1 }).populate('user').populate({
       path: 'comments.user',
       model:'user'
     });
@@ -94,6 +94,56 @@ router.get("/user/:id", auth, async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
+
+
+// Get All Post
+router.get("/story", auth, async (req, res) => {
+  try {
+    const post = await Post.find({postType:'Story'}).sort({ date: -1 }).populate('user')
+    var totalRecords = []
+    var j=0;
+    for(i=0;i<post.length;i++) {
+      var index = totalRecords.findIndex(x => x?.user_id == post[i].user?._id)
+
+      if(index > -1){
+        console.log('IF')
+        var story_id = post[i]._id
+        var story_image = `https://reelmails.s3.us-east-2.amazonaws.com/${post[i].media}`
+        var newStory = {
+          story_id,
+          story_image
+        }
+        totalRecords[index].stories.push(newStory)
+      } else {
+        console.log('ELSE')
+        var user_id = post[i].user._id
+        var user_name = post[i].user.username
+        var user_image = post[i].user.media ? `https://reelmails.s3.us-east-2.amazonaws.com/${post[i].user.media}` : 'https://t4.ftcdn.net/jpg/03/59/58/91/360_F_359589186_JDLl8dIWoBNf1iqEkHxhUeeOulx0wOC5.jpg'
+        var story_id = post[i]._id
+        var story_image = `https://reelmails.s3.us-east-2.amazonaws.com/${post[i].media}`
+        var newStory = {
+          story_id,
+          story_image
+        }
+        var newObj = {
+          user_id,
+          user_name,
+          user_image,
+          stories:[newStory]
+        }
+        totalRecords[j++] = newObj
+
+      }
+    }
+
+    console.log(totalRecords,'STORIES')
+    return res.json({ totalRecords, status: 200 });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
 
 
 // Get Post By Id
@@ -223,5 +273,7 @@ router.delete("/comment/:id/:comment_id",auth,async(req,res)=>{
     }
     
 })
+
+
 
 module.exports = router;
