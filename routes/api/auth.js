@@ -72,7 +72,7 @@ router.post("/login", async (req, res) => {
     jwt.sign(
       payLoad,
       'mysecrettoken',
-      { expiresIn: 36000 },
+      { expiresIn: 36000000 },
       (err, token) => {
         if (err) {
           throw err;
@@ -131,7 +131,7 @@ router.post(
         jwt.sign(
           payLoad,
           'mysecrettoken',
-          { expiresIn: 36000 },
+          { expiresIn: 36000000 },
           (err, token) => {
             if (err) {
               throw err;
