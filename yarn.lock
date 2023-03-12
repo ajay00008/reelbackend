@@ -1403,6 +1403,16 @@ detect-libc@^2.0.0, detect-libc@^2.0.1:
   resolved "https://registry.yarnpkg.com/detect-libc/-/detect-libc-2.0.1.tgz#e1897aa88fa6ad197862937fbc0441ef352ee0cd"
   integrity sha512-463v3ZeIrcWtdgIg6vI6XUncguvr2TnGl4SzDXinkt9mSLpBJKXT3mW6xT3VQdDN11+WVs29pgvivTc4Lp8v+w==
 
+duplexify@^4.0.0:
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/duplexify/-/duplexify-4.1.2.tgz#18b4f8d28289132fa0b9573c898d9f903f81c7b0"
+  integrity sha512-fz3OjcNCHmRP12MJoZMPglx8m4rrFP8rovnk4vT8Fs+aonZoCwGg10dSsQsfP/E62eZcPTMSMP6686fu9Qlqtw==
+  dependencies:
+    end-of-stream "^1.4.1"
+    inherits "^2.0.3"
+    readable-stream "^3.1.1"
+    stream-shift "^1.0.0"
+
 ecdsa-sig-formatter@1.0.11:
   version "1.0.11"
   resolved "https://registry.npmjs.org/ecdsa-sig-formatter/-/ecdsa-sig-formatter-1.0.11.tgz"
@@ -1856,6 +1866,11 @@ lru-cache@^6.0.0:
   integrity sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==
   dependencies:
     yallist "^4.0.0"
+
+media-thumbnail@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/media-thumbnail/-/media-thumbnail-1.0.0.tgz#c07c8854d23f4f6c81cfaca886255d4c004b7bdc"
+  integrity sha512-u5A6Q8NdqZq+RhP7iXZpkEP85emOSiNWsOgJ++zEvnXogAqsk5zLDXf9EbugD7e4vZ8xcY3O1OY6GER2f/wOmg==
 
 media-typer@0.3.0:
   version "0.3.0"
@@ -2435,6 +2450,13 @@ simple-swizzle@^0.2.2:
   dependencies:
     is-arrayish "^0.3.1"
 
+simple-thumbnail@^1.6.5:
+  version "1.6.5"
+  resolved "https://registry.yarnpkg.com/simple-thumbnail/-/simple-thumbnail-1.6.5.tgz#0dcc97970951e1dece5657919b5bda1f8516ef0d"
+  integrity sha512-HWN6oNyfvMWrwCW6CiVW5k1LUyl8neiim4Tx7v5FjvGEZM3rZpoKy3xEywrdEGvVlSzHQsaINp18eP7A7YYRiA==
+  dependencies:
+    duplexify "^4.0.0"
+
 simple-update-notifier@^1.0.7:
   version "1.1.0"
   resolved "https://registry.npmjs.org/simple-update-notifier/-/simple-update-notifier-1.1.0.tgz"
@@ -2474,6 +2496,11 @@ stream-browserify@3.0.0:
   dependencies:
     inherits "~2.0.4"
     readable-stream "^3.5.0"
+
+stream-shift@^1.0.0:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/stream-shift/-/stream-shift-1.0.1.tgz#d7088281559ab2778424279b0877da3c392d5a3d"
+  integrity sha512-AiisoFqQ0vbGcZgQPY1cdP2I76glaVA/RauYR4G4thNFgkTqr90yXTo4LYX60Jl+sIlPNHHdGSwo01AvbKUSVQ==
 
 streamsearch@^1.1.0:
   version "1.1.0"

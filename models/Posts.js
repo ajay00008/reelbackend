@@ -20,6 +20,9 @@ const PostSchema = new mongoose.Schema({
     mimeType: {
         type:String
     },
+    thumbnail_url:{
+        type:String
+    },
     likes:[
         {
             user:{

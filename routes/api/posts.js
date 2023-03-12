@@ -14,6 +14,9 @@ const { baseUrl } = require('../../utils/url');
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegPath);
+const genThumbnail = require('simple-thumbnail')
+
+
 
 
 
@@ -78,6 +81,22 @@ router.post("/",upload.single('image'), auth, async (req, res) => {
 router.post("/video",upload.single('video'), auth, async (req, res) => {
   const { text, postType, location } = req.body;
   try {
+    // var proc = new ffmpeg('C:/Users/dell/Desktop/Fiverr/reelmail-backend/media/video/622E440D-209D-48C9-B937-FEE084255CA0.mov')
+    // .takeScreenshots({ timemarks: [ '00:00:02' ], size: '150x100' }, './media/thumbnail/main', function(err, filenames) {
+    //   console.log(filenames,err);
+    //   console.log('screenshots were saved');
+    // });
+
+    ffmpeg(req.file.path)
+  .screenshots({
+    timestamps: ['00:00:02'],
+    filename: `${req.file.filename}_thumbnail.png`,
+    folder: './media/thumbnail',
+    size: '400x350'
+  });
+
+  
+  
     const user = await User.findById(req.user.id).select("-password");
       const newPost = new Post({
         text: text,
@@ -85,7 +104,8 @@ router.post("/video",upload.single('video'), auth, async (req, res) => {
         media: `media/video/${req.file.originalname}`,
         postType: postType,
         location:location,
-        mimeType:req.file.mimetype
+        mimeType:req.file.mimetype,
+        thumbnail_url:`media/thumbnail/${req.file.filename}_thumbnail.png`
       });
       const post = await newPost.save();
       return res.json({ post, status: 200 });

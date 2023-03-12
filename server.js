@@ -45,6 +45,11 @@ app.get("/media/video/:name", (req, res) => {
 });
 
 
+app.get("/media/thumbnail/:name", (req, res) => {
+  res.sendFile(path.join(__dirname, `./media/thumbnail/${req.params.name}`));
+});
+
+
 app.use('/api/auth',require('./routes/api/auth'))
 app.use('/api/posts',require('./routes/api/posts'))
 app.use('/api/user',require('./routes/api/user'))
