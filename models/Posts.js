@@ -17,6 +17,9 @@ const PostSchema = new mongoose.Schema({
     postType: {
         type: String
     },
+    mimeType: {
+        type:String
+    },
     likes:[
         {
             user:{

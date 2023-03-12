@@ -7,7 +7,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("config");
 const sendNotifications = require("../../middleware/notifications");
-const upload = require("../../middleware/upload");
+const upload = require("../../middleware/localStorage");
 
 
 
@@ -81,7 +81,7 @@ router.post('/update',upload.single('image'),auth, async (req, res) => {
       user.firstName = firstName ? firstName : user.firstName;
       user.lastName = lastName ? lastName : user.lastName;
       user.description = description ? description : user.description;
-      user.media = req.file.originalname ? req.file.originalname : user.media;
+      user.media = req.file.originalname ? `media/image/${req.file.originalname}` : user.media;
       await user.save();
       return res.json({ msg: "User Updated", user  });
 
