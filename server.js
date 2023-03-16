@@ -6,6 +6,7 @@ const path  = require('path')
 
 var cors = require("cors");
 const Message = require("./models/Message");
+const { socketBaseUrl, currentBaseUrl } = require("./utils/activeUrl");
 const app = express();
 
 connectDB();
@@ -66,7 +67,7 @@ const server = app.listen(PORT, () => {
 const io = require('socket.io')(server, {
   pingTimeout:60000,
   cors: {
-    origin:'http://localhost:5000/'
+    origin:currentBaseUrl
   }
 })
 
@@ -75,7 +76,6 @@ io.on("connection", (socket) => {
   // console.log(socket.client.conn.server.clientsCount,'DAAA')
 
   socket.on('getUsers', () => {
-    console.log('User agye')
   })
   socket.on('setup', (userData) => {
     socket.join(userData._id)
@@ -88,7 +88,6 @@ io.on("connection", (socket) => {
   })
 
   socket.on('new message', async(newMessageRec) => {
-    console.log(newMessageRec,'EWC')
     socket.in(newMessageRec.reciver._id).emit('message recieved', newMessageRec)
     const newMessage = await new Message ({
       roomId:newMessageRec.roomId,
