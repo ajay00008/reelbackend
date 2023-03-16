@@ -46,6 +46,7 @@
     "nodemon": "^2.0.21",
     "path": "^0.12.7",
     "sharp": "^0.31.3",
-    "simple-thumbnail": "^1.6.5"
+    "simple-thumbnail": "^1.6.5",
+    "socket.io": "^4.6.1"
   }
 }

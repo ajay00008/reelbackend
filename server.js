@@ -5,6 +5,7 @@ const path  = require('path')
 
 
 var cors = require("cors");
+const Message = require("./models/Message");
 const app = express();
 
 connectDB();
@@ -53,8 +54,49 @@ app.get("/media/thumbnail/:name", (req, res) => {
 app.use('/api/auth',require('./routes/api/auth'))
 app.use('/api/posts',require('./routes/api/posts'))
 app.use('/api/user',require('./routes/api/user'))
+app.use('/api/reel',require('./routes/api/reel'))
+app.use('/api/messages',require('./routes/api/messages'))
 
 
-app.listen(PORT, () => {
+
+const server = app.listen(PORT, () => {
   console.log(`Server Started on Port ${PORT}`);
 });
+
+const io = require('socket.io')(server, {
+  pingTimeout:60000,
+  cors: {
+    origin:'http://localhost:5000/'
+  }
+})
+
+io.on("connection", (socket) => {
+  console.log('Connected To Socket.Io')
+  // console.log(socket.client.conn.server.clientsCount,'DAAA')
+
+  socket.on('getUsers', () => {
+    console.log('User agye')
+  })
+  socket.on('setup', (userData) => {
+    socket.join(userData._id)
+    socket.emit('connected')
+  })
+
+  socket.on('join chat', (roomId) => {
+    socket.join(roomId)
+    console.log("User Joined Room", roomId)
+  })
+
+  socket.on('new message', async(newMessageRec) => {
+    console.log(newMessageRec,'EWC')
+    socket.in(newMessageRec.reciver._id).emit('message recieved', newMessageRec)
+    const newMessage = await new Message ({
+      roomId:newMessageRec.roomId,
+      sender:newMessageRec.user._id,
+      reciever:newMessageRec.reciver._id,
+      message:newMessageRec.text,
+    })
+    await newMessage.save()
+  })
+
+})
