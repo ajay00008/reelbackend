@@ -18,6 +18,7 @@ const genThumbnail = require("simple-thumbnail");
 const { currentBaseUrl } = require("../../utils/activeUrl");
 
 router.get("/:id", auth, async (req, res) => {
+  const url = baseUrl(req)
   try {
     var messages = await Message.find({ roomId: req.params.id })
       .sort({ date: -1 })
@@ -38,12 +39,12 @@ router.get("/:id", auth, async (req, res) => {
         user: {
           _id: user.user._id,
           name: user.user.username,
-          avatar: `${currentBaseUrl}/${user.user.media}`,
+          avatar: `${url}${user.user.media}`,
         },
         createdAt: user.createdAt,
         text: user.text,
         _id: user._id,
-        image: user.image ? `${currentBaseUrl}/${user.image}` : null,
+        image: user.image ? `${url}${user.image}` : null,
       };
     });
 
