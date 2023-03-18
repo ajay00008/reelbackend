@@ -20,7 +20,7 @@ const genThumbnail = require('simple-thumbnail')
 
 // Create Reel
 router.post("/",upload.single('video'), auth, async (req, res) => {
-    const { text, postType, post } = req.body;
+    const { text, postType, image } = req.body;
     console.log(req.file)
     try {
       const user = await User.findById(req.user.id).select("-password");
@@ -28,7 +28,7 @@ router.post("/",upload.single('video'), auth, async (req, res) => {
           text: text,
           user: req.user.id,
           media: `media/video/${req.file.originalname}`,
-          post:post?._id,
+          image:image,
           postType: postType,
           mimeType:req.file.mimetype
         });

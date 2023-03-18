@@ -5,9 +5,8 @@ const ReelSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user'
     },
-    post:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'post'
+    image: {
+        type:String
     },
     text: {
         type: String

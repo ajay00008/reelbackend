@@ -17,6 +17,7 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 const genThumbnail = require("simple-thumbnail");
 const { currentBaseUrl } = require("../../utils/activeUrl");
 
+
 router.get("/:id", auth, async (req, res) => {
   const url = baseUrl(req)
   try {
@@ -30,7 +31,11 @@ router.get("/:id", auth, async (req, res) => {
         user: val.sender,
         createdAt: val.date,
         text: val.message,
-        image: val.media ? val.media : undefined,
+        image: val.image ? val.image : undefined,
+        video: val.video ? val.video : undefined,
+        reel:val.reel,
+        messageType:val.messageType,
+        isReelCompleted:val.isReelCompleted
       };
     });
 
@@ -45,6 +50,10 @@ router.get("/:id", auth, async (req, res) => {
         text: user.text,
         _id: user._id,
         image: user.image ? `${url}${user.image}` : null,
+        video: user.video? `${url}${user.video}` : null,
+        reel: user.reel,
+        messageType:user.messageType,
+        isReelCompleted:user.isReelCompleted
       };
     });
 
@@ -56,14 +65,41 @@ router.get("/:id", auth, async (req, res) => {
 });
 
 router.post("/", auth, async (req, res) => {
-  const { roomId, user, reciver, text, media } = req.body;
+  const { roomId, user, reciver, text, reel, image, video, isReelCompleted } = req.body;
   try {
     const newMessage = await new Message({
       roomId: roomId,
       sender: user,
       reciever: reciver,
-      media: media,
+      image: image ? image: null,
+      video:video ? video : null,
       message: text,
+      reel:reel ? reel : false,
+      isReelCompleted:isReelCompleted ? isReelCompleted :false
+    });
+
+    await newMessage.save();
+
+    return res.json({ newMessage, status: 200 });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+
+router.post("/reelmessage",upload.single('video'), auth, async (req, res) => {
+  const { roomId, user, reciver, text, reel, image, isReelCompleted } = req.body;
+  try {
+    const newMessage = await new Message({
+      roomId: roomId,
+      sender: user,
+      reciever: reciver,
+      image: image ? image: null,
+      video: `media/video/${req.file.originalname}`,
+      message: text,
+      reel:reel ? reel : false,
+      isReelCompleted:isReelCompleted ? isReelCompleted :false
     });
 
     await newMessage.save();

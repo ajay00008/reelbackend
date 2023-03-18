@@ -15,12 +15,23 @@ const MessageSchema = new mongoose.Schema({
     message: {
         type: String
     },
-    media: {
+    video: {
+        type: String
+    },
+    image: {
         type: String
     },
     date: {
         type:Date,
         default: Date.now
+    },
+    reel: {
+        type: Boolean,
+        default:false
+    },
+    isReelCompleted: {
+        type: Boolean,
+        default:false
     }
 })
 
