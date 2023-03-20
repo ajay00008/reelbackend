@@ -39,6 +39,29 @@ router.post("/",upload.single('video'), auth, async (req, res) => {
       res.status(500).send("Server Error");
     }
   });
+
+
+  // Create Reel
+router.post("/post", auth, async (req, res) => {
+  const { text, postType, image, video, reelVideo } = req.body;
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+      const newReel = new Post({
+        text: text,
+        user: req.user.id,
+        video: video ? video : null,
+        image:image ? image : null,
+        reelVideo: reelVideo ? reelVideo : null,
+        postType: postType,
+      });
+      const reel = await newReel.save();
+      return res.json({ reel, status: 200 });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
   
 
 

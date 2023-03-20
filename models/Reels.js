@@ -11,7 +11,10 @@ const ReelSchema = new mongoose.Schema({
     text: {
         type: String
     },
-    media: {
+    isReelCompleted:{
+        type: Boolean
+    },
+    video: {
         type: String
     },
     postType: {

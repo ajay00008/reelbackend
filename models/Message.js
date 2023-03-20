@@ -15,6 +15,9 @@ const MessageSchema = new mongoose.Schema({
     message: {
         type: String
     },
+    reelVideo: {
+        type:String
+    },
     video: {
         type: String
     },
