@@ -107,10 +107,13 @@ router.post("/reelmessage",upload.single('video'), auth, async (req, res) => {
       isReelCompleted:isReelCompleted ? isReelCompleted :false
     });
 
+    console.log(newMessage,'New Message')
+
     await newMessage.save();
 
     return res.json({ newMessage, status: 200 });
   } catch (err) {
+    console.log(err,'Err')
     console.log(err.message);
     res.status(500).send("Server Error");
   }
