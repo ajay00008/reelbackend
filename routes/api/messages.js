@@ -95,7 +95,7 @@ router.post("/", auth, async (req, res) => {
 });
 
 
-router.post("/reelmessage",uploadVideo.single('video'), auth, async (req, res) => {
+router.post("/reelmessage", auth, async (req, res) => {
   const { roomId, user, reciver, text, reel, image, isReelCompleted, reelVideo } = req.body;
   try {
     // const inputBuffer = req.file.buffer;
