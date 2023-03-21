@@ -21,6 +21,7 @@ const { Readable } = require('stream');
 const uploadVideo = require("../../middleware/localVideoStorage");
 
 
+
 // const multerMemoryStorage = multer.memoryStorage();
 // const multerUploadInMemory = multer({
 //   storage: multerMemoryStorage,
@@ -86,26 +87,27 @@ router.post("/", upload.single("image"), auth, async (req, res) => {
 router.post("/video", uploadVideo.single("video"), auth, async (req, res) => {
   const { text, postType, location } = req.body;
   try {
-    const inputBuffer = req.file.buffer;
+    console.log(req.file)
     const inputFileExtension = path.extname(req.file.originalname);
-    const today = new Date();
-    const dateTime = today.toLocaleString();
-    const inputFile = `./media/video/${req.file.originalname}${inputFileExtension}`;
-    console.log("Saving file to disk...", inputFile);
+    // const today = new Date();
+    // const dateTime = today.toLocaleString();
+    // console.log("Saving file to disk...", inputFile);
 
-    fs.writeFileSync(inputFile, inputBuffer);
-    console.log("File saved to disk.");
+    // console.log("File saved to disk.");
 
-    console.log(`Checking input filesize in bytes`);
-    ffmpeg(inputFile)
-      .output(`./media/video/${req.file.originalname}`)
+    // console.log(`Checking input filesize in bytes`);
+    // var inputFile = `./media/video/${'mov_'+req.file.originalname}`
+
+    ffmpeg(req.file.path)
+      .output(`./media/video/${'mov_'+req.file.originalname}`)
       .videoCodec("libx264")
       .audioCodec("aac")
-      .videoBitrate("300", true)
+      .videoBitrate("500", true)
       .autopad()
       .on("end", async function () {
+        fs.unlinkSync(req.file.path)
+
         // await checkFileSize(`./media/video/${req.file.originalname}`);
-        // fs.unlinkSync(req.file.originalname)
         // ffmpeg(inputFile)
         // .screenshots({
         //   timestamps: ['00:00:02'],
@@ -113,12 +115,12 @@ router.post("/video", uploadVideo.single("video"), auth, async (req, res) => {
         //   folder: './media/thumbnail',
         //   size: '400x350'
         // });
-        fs.unlinkSync(inputFile);
+        // fs.unlinkSync(inputFile);
 
         const newPost = new Post({
           text: text,
           user: req.user.id,
-          media: `media/video/${req.file.originalname}`,
+          media: `media/video/${'mov_'+req.file.originalname}`,
           postType: postType,
           location: location,
           mimeType: req.file.mimetype,
