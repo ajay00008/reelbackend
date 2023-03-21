@@ -9,10 +9,11 @@ const storage = multer.diskStorage({
         if (file.fieldname == 'image') {
             cb(null, './media/image')
         } else {
+            child_pro
             cb(null, './media/video')
         }
     },
 })
-const upload = multer({ storage })
+const upload = multer({ storage:multer.memoryStorage() })
 
 module.exports = upload

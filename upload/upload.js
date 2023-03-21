@@ -15,9 +15,9 @@ module.exports = async function uploadImageTos3Bucket(files) {
 
   const uploadParams = {
     Bucket: "reelmails",
-    Key: files.media.name,
-    Body: Buffer.from(files.media.data),
-    ContentType: files.media.mimetype,
+    Key: files.originalname,
+    Body: files.buffer,
+    ContentType: files.mimetype,
     ACL: "public-read",
   };
 
