@@ -87,8 +87,7 @@ router.post("/", upload.single("image"), auth, async (req, res) => {
 router.post("/video", uploadVideo.single("video"), auth, async (req, res) => {
   const { text, postType, location } = req.body;
   try {
-    console.log(req.file)
-    const inputFileExtension = path.extname(req.file.originalname);
+    // const inputFileExtension = path.extname(req.file.originalname);
     // const today = new Date();
     // const dateTime = today.toLocaleString();
     // console.log("Saving file to disk...", inputFile);

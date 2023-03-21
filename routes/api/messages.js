@@ -98,31 +98,31 @@ router.post("/", auth, async (req, res) => {
 router.post("/reelmessage",uploadVideo.single('video'), auth, async (req, res) => {
   const { roomId, user, reciver, text, reel, image, isReelCompleted, reelVideo } = req.body;
   try {
-    const inputBuffer = req.file.buffer;
-    const inputFileExtension = path.extname(req.file.originalname);
-    const today = new Date();
-    const dateTime = today.toLocaleString();
-    const inputFile = `./media/video/${req.file.originalname}${inputFileExtension}`;
-    console.log("Saving file to disk...", inputFile);
+    // const inputBuffer = req.file.buffer;
+    // const inputFileExtension = path.extname(req.file.originalname);
+    // const today = new Date();
+    // const dateTime = today.toLocaleString();
+    // const inputFile = `./media/video/${req.file.originalname}${inputFileExtension}`;
+    // console.log("Saving file to disk...", inputFile);
 
-    fs.writeFileSync(inputFile, inputBuffer);
-    console.log("File saved to disk.");
+    // fs.writeFileSync(inputFile, inputBuffer);
+    // console.log("File saved to disk.");
 
-    console.log(`Checking input filesize in bytes`);
-    ffmpeg(inputFile)
-      .output(`./media/video/${req.file.originalname}`)
-      .videoCodec("libx264")
-      .audioCodec("aac")
-      .videoBitrate("300", true)
-      .autopad()
-      .on("end", async function () {
+    // console.log(`Checking input filesize in bytes`);
+    ffmpeg(req.file.path)
+    .output(`./media/video/${'mov_'+req.file.originalname}`)
+    .videoCodec("libx264")
+    .audioCodec("aac")
+    .videoBitrate("500", true)
+    .autopad()
+    .on("end", async function () {
         fs.unlinkSync(inputFile);
         const newMessage = await new Message({
           roomId: roomId,
           sender: user,
           reciever: reciver,
           image: image ? image: null,
-          video: `media/video/${req.file.originalname}`,
+          video: `media/video/${'mov_'+req.file.originalname}`,
           reelVideo: reelVideo ? reelVideo : null,
           message: text,
           reel:reel ? reel : false,

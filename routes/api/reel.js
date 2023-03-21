@@ -25,21 +25,21 @@ const uploadVideo = require("../../middleware/localVideoStorage");
 router.post("/",uploadVideo.single('video'), auth, async (req, res) => {
     const { text, postType, image } = req.body;
     try {
-      const inputBuffer = req.file.buffer;
-      const inputFileExtension = path.extname(req.file.originalname);
-      const today = new Date();
-      const dateTime = today.toLocaleString();
-      const inputFile = `./media/video/${req.file.originalname}${inputFileExtension}`;
-      console.log("Saving file to disk...", inputFile);
+      // const inputBuffer = req.file.buffer;
+      // const inputFileExtension = path.extname(req.file.originalname);
+      // const today = new Date();
+      // const dateTime = today.toLocaleString();
+      // const inputFile = `./media/video/${req.file.originalname}${inputFileExtension}`;
+      // console.log("Saving file to disk...", inputFile);
   
-      fs.writeFileSync(inputFile, inputBuffer);
-      console.log("File saved to disk.");
+      // fs.writeFileSync(inputFile, inputBuffer);
+      // console.log("File saved to disk.");
 
-      ffmpeg(inputFile)
-      .output(`./media/video/${req.file.originalname}`)
+      ffmpeg(req.file.path)
+      .output(`./media/video/${'mov_'+req.file.originalname}`)
       .videoCodec("libx264")
       .audioCodec("aac")
-      .videoBitrate("300", true)
+      .videoBitrate("500", true)
       .autopad()
       .on("end", async function () {
         fs.unlinkSync(inputFile);
@@ -47,7 +47,7 @@ router.post("/",uploadVideo.single('video'), auth, async (req, res) => {
         const newReel = new Post({
           text: text,
           user: req.user.id,
-          media: `media/video/${req.file.originalname}`,
+          media: `media/video/${'mov_'+req.file.originalname}`,
           image:image,
           postType: postType,
           mimeType:req.file.mimetype
