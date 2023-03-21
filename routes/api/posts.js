@@ -19,6 +19,15 @@ const fs = require("fs");
 const path = require("path");
 const { Readable } = require('stream');
 const uploadVideo = require("../../middleware/localVideoStorage");
+const cloudinary = require('cloudinary').v2;
+
+
+cloudinary.config({
+  cloud_name: "daboifufy",
+  api_key: "291269395595355",
+  api_secret: "Go4sbH66ilP7Fz6Jo-oyI3FP6a8"
+});
+
 
 
 
@@ -84,7 +93,7 @@ router.post("/", upload.single("image"), auth, async (req, res) => {
 });
 
 // Create Post
-router.post("/video", uploadVideo.single("video"), auth, async (req, res) => {
+router.post("/video", auth, async (req, res) => {
   const { text, postType, location } = req.body;
   try {
     // const inputFileExtension = path.extname(req.file.originalname);
@@ -97,14 +106,15 @@ router.post("/video", uploadVideo.single("video"), auth, async (req, res) => {
     // console.log(`Checking input filesize in bytes`);
     // var inputFile = `./media/video/${'mov_'+req.file.originalname}`
 
-    ffmpeg(req.file.path)
-      .output(`./media/video/${'mov_'+req.file.originalname}`)
+    console.log(req.files.video)
+
+    ffmpeg(req.files.video.tempFilePath)
+      .output(`./media/video/${req.files.video.name}`)
       .videoCodec("libx264")
       .audioCodec("aac")
       .videoBitrate("500", true)
       .autopad()
       .on("end", async function () {
-        fs.unlinkSync(req.file.path)
 
         // await checkFileSize(`./media/video/${req.file.originalname}`);
         // ffmpeg(inputFile)
@@ -119,16 +129,21 @@ router.post("/video", uploadVideo.single("video"), auth, async (req, res) => {
         const newPost = new Post({
           text: text,
           user: req.user.id,
-          media: `media/video/${'mov_'+req.file.originalname}`,
+          media: `media/video/${req.files.video.name}`,
           postType: postType,
           location: location,
-          mimeType: req.file.mimetype,
-          thumbnail_url: `media/thumbnail/${req.file.originalname}_thumbnail.png`,
+          mimeType: req.files.video.mimeType,
+          // thumbnail_url: `media/thumbnail/${req.file.originalname}_thumbnail.png`,
         });
         console.log("Files uploaded successfully.");
         const post = await newPost.save();
         return res.json({ post, status: 200 });
       }).run();
+
+
+    // console.log(req.files, postType)
+
+
     //   const user = await User.findById(req.user.id).select("-password");
     //     const newPost = new Post({
     //       text: text,

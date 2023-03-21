@@ -20,7 +20,6 @@ const path = require("path");
 const uploadVideo = require("../../middleware/localVideoStorage");
 
 
-
 // Create Reel
 router.post("/",uploadVideo.single('video'), auth, async (req, res) => {
     const { text, postType, image } = req.body;
