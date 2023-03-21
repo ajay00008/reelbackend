@@ -116,7 +116,7 @@ router.post("/reelmessage",uploadVideo.single('video'), auth, async (req, res) =
     .videoBitrate("500", true)
     .autopad()
     .on("end", async function () {
-        fs.unlinkSync(inputFile);
+        fs.unlinkSync(req.file.path);
         const newMessage = await new Message({
           roomId: roomId,
           sender: user,

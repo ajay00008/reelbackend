@@ -42,7 +42,7 @@ router.post("/",uploadVideo.single('video'), auth, async (req, res) => {
       .videoBitrate("500", true)
       .autopad()
       .on("end", async function () {
-        fs.unlinkSync(inputFile);
+        fs.unlinkSync(req.file.path);
         const user = await User.findById(req.user.id).select("-password");
         const newReel = new Post({
           text: text,
