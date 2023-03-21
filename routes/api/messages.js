@@ -109,13 +109,13 @@ router.post("/reelmessage", auth, async (req, res) => {
     // console.log("File saved to disk.");
 
     // console.log(`Checking input filesize in bytes`);
-    ffmpeg(req.files.video.tempFilePath)
-    .output(`./media/video/${req.files.video.name}`)
-    .videoCodec("libx264")
-    .audioCodec("aac")
-    .videoBitrate("500", true)
-    .autopad()
-    .on("end", async function () {
+      ffmpeg(req.files.video.tempFilePath)
+      .output(`./media/video/${req.files.video.name}`)
+      .videoCodec("libx264")
+      .audioCodec("aac")
+      .videoBitrate("500", true)
+      .autopad()
+      .on("end", async function () {
         // fs.unlinkSync(req.file.path);
         const newMessage = await new Message({
           roomId: roomId,

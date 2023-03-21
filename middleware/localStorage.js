@@ -8,8 +8,6 @@ const storage = multer.diskStorage({
         console.log('storage')
         if (file.fieldname == 'image') {
             cb(null, './media/image')
-        } else {
-            cb(null, './media/video')
         }
     },
 })

@@ -4,7 +4,6 @@ const auth = require("../../middleware/auth");
 const User = require("../../models/User");
 const Post = require("../../models/Posts");
 const { check, validationResult } = require("express-validator");
-const uploadImageTos3Bucket = require("../../upload/upload");
 const sendNotifications = require("../../middleware/notifications");
 const aws = require("aws-sdk");
 const multer = require("multer");
@@ -19,16 +18,6 @@ const fs = require("fs");
 const path = require("path");
 const { Readable } = require('stream');
 const uploadVideo = require("../../middleware/localVideoStorage");
-const cloudinary = require('cloudinary').v2;
-
-
-cloudinary.config({
-  cloud_name: "daboifufy",
-  api_key: "291269395595355",
-  api_secret: "Go4sbH66ilP7Fz6Jo-oyI3FP6a8"
-});
-
-
 
 
 // const multerMemoryStorage = multer.memoryStorage();
@@ -71,18 +60,19 @@ const checkFileSize = async (filePath) => {
 };
 
 // Create Post
-router.post("/", upload.single("image"), auth, async (req, res) => {
+router.post("/", auth, async (req, res) => {
   const { text, postType, location } = req.body;
   try {
-    console.log(req.file);
+    var file = req.files.image
+    file.mv(`./media/image/${req.files.image.name}`)
     const user = await User.findById(req.user.id).select("-password");
     const newPost = new Post({
       text: text,
       user: req.user.id,
-      media: `media/image/${req.file.originalname}`,
+      media: `media/image/${req.files.image.name}`,
       postType: postType,
       location: location,
-      mimeType: req.file.mimetype,
+      mimeType: req.files.image.mimetype,
     });
     const post = await newPost.save();
     return res.json({ post, status: 200 });
@@ -106,8 +96,6 @@ router.post("/video", auth, async (req, res) => {
     // console.log(`Checking input filesize in bytes`);
     // var inputFile = `./media/video/${'mov_'+req.file.originalname}`
 
-    console.log(req.files.video)
-
     ffmpeg(req.files.video.tempFilePath)
       .output(`./media/video/${req.files.video.name}`)
       .videoCodec("libx264")
@@ -117,13 +105,13 @@ router.post("/video", auth, async (req, res) => {
       .on("end", async function () {
 
         // await checkFileSize(`./media/video/${req.file.originalname}`);
-        // ffmpeg(inputFile)
-        // .screenshots({
-        //   timestamps: ['00:00:02'],
-        //   filename: `${req.file.originalname}_thumbnail.png`,
-        //   folder: './media/thumbnail',
-        //   size: '400x350'
-        // });
+        ffmpeg(req.files.video.tempFilePath)
+        .screenshots({
+          timestamps: ['00:00:02'],
+          filename: `${req.files.video.name}_thumbnail.png`,
+          folder: './media/thumbnail',
+          size: '400x350'
+        });
         // fs.unlinkSync(inputFile);
 
         const newPost = new Post({
@@ -132,8 +120,8 @@ router.post("/video", auth, async (req, res) => {
           media: `media/video/${req.files.video.name}`,
           postType: postType,
           location: location,
-          mimeType: req.files.video.mimeType,
-          // thumbnail_url: `media/thumbnail/${req.file.originalname}_thumbnail.png`,
+          mimeType: req.files.video.mimetype,
+          thumbnail_url: `media/thumbnail/${req.files.video.name}_thumbnail.png`,
         });
         console.log("Files uploaded successfully.");
         const post = await newPost.save();
