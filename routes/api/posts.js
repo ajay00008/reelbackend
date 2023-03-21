@@ -106,13 +106,13 @@ router.post("/video", uploadVideo.single("video"), auth, async (req, res) => {
       .on("end", async function () {
         // await checkFileSize(`./media/video/${req.file.originalname}`);
         // fs.unlinkSync(req.file.originalname)
-        ffmpeg(inputFile)
-        .screenshots({
-          timestamps: ['00:00:02'],
-          filename: `${req.file.originalname}_thumbnail.png`,
-          folder: './media/thumbnail',
-          size: '400x350'
-        });
+        // ffmpeg(inputFile)
+        // .screenshots({
+        //   timestamps: ['00:00:02'],
+        //   filename: `${req.file.originalname}_thumbnail.png`,
+        //   folder: './media/thumbnail',
+        //   size: '400x350'
+        // });
         fs.unlinkSync(inputFile);
 
         const newPost = new Post({
