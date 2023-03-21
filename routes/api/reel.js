@@ -21,7 +21,7 @@ const uploadVideo = require("../../middleware/localVideoStorage");
 
 
 // Create Reel
-router.post("/",uploadVideo.single('video'), auth, async (req, res) => {
+router.post("/", auth, async (req, res) => {
     const { text, postType, image } = req.body;
     try {
       // const inputBuffer = req.file.buffer;
@@ -34,22 +34,22 @@ router.post("/",uploadVideo.single('video'), auth, async (req, res) => {
       // fs.writeFileSync(inputFile, inputBuffer);
       // console.log("File saved to disk.");
 
-      ffmpeg(req.file.path)
-      .output(`./media/video/${'mov_'+req.file.originalname}`)
+      ffmpeg(req.files.video.tempFilePath)
+      .output(`./media/video/${req.files.video.name}`)
       .videoCodec("libx264")
       .audioCodec("aac")
       .videoBitrate("500", true)
       .autopad()
       .on("end", async function () {
-        fs.unlinkSync(req.file.path);
+        // fs.unlinkSync(req.file.path);
         const user = await User.findById(req.user.id).select("-password");
         const newReel = new Post({
           text: text,
           user: req.user.id,
-          media: `media/video/${'mov_'+req.file.originalname}`,
+          media: `media/video/${req.files.video.name}`,
           image:image,
           postType: postType,
-          mimeType:req.file.mimetype
+          mimeType: req.files.video.mimeType,
         });
         const reel = await newReel.save();
         return res.json({ reel, status: 200 });

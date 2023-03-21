@@ -109,20 +109,20 @@ router.post("/reelmessage",uploadVideo.single('video'), auth, async (req, res) =
     // console.log("File saved to disk.");
 
     // console.log(`Checking input filesize in bytes`);
-    ffmpeg(req.file.path)
-    .output(`./media/video/${'mov_'+req.file.originalname}`)
+    ffmpeg(req.files.video.tempFilePath)
+    .output(`./media/video/${req.files.video.name}`)
     .videoCodec("libx264")
     .audioCodec("aac")
     .videoBitrate("500", true)
     .autopad()
     .on("end", async function () {
-        fs.unlinkSync(req.file.path);
+        // fs.unlinkSync(req.file.path);
         const newMessage = await new Message({
           roomId: roomId,
           sender: user,
           reciever: reciver,
           image: image ? image: null,
-          video: `media/video/${'mov_'+req.file.originalname}`,
+          video: `media/video/${req.files.video.name}`,
           reelVideo: reelVideo ? reelVideo : null,
           message: text,
           reel:reel ? reel : false,
