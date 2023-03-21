@@ -17,6 +17,9 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 const genThumbnail = require("simple-thumbnail");
 const fs = require("fs");
 const path = require("path");
+const { Readable } = require('stream');
+const uploadVideo = require("../../middleware/localVideoStorage");
+
 
 // const multerMemoryStorage = multer.memoryStorage();
 // const multerUploadInMemory = multer({
@@ -80,15 +83,9 @@ router.post("/", upload.single("image"), auth, async (req, res) => {
 });
 
 // Create Post
-router.post("/video", upload.single("video"), auth, async (req, res) => {
+router.post("/video", uploadVideo.single("video"), auth, async (req, res) => {
   const { text, postType, location } = req.body;
   try {
-    // var proc = new ffmpeg('C:/Users/dell/Desktop/Fiverr/reelmail-backend/media/video/622E440D-209D-48C9-B937-FEE084255CA0.mov')
-    // .takeScreenshots({ timemarks: [ '00:00:02' ], size: '150x100' }, './media/thumbnail/main', function(err, filenames) {
-    //   console.log(filenames,err);
-    //   console.log('screenshots were saved');
-    // });
-
     const inputBuffer = req.file.buffer;
     const inputFileExtension = path.extname(req.file.originalname);
     const today = new Date();
@@ -100,7 +97,6 @@ router.post("/video", upload.single("video"), auth, async (req, res) => {
     console.log("File saved to disk.");
 
     console.log(`Checking input filesize in bytes`);
-    // await checkFileSize(inputFile);
     ffmpeg(inputFile)
       .output(`./media/video/${req.file.originalname}`)
       .videoCodec("libx264")
@@ -109,9 +105,16 @@ router.post("/video", upload.single("video"), auth, async (req, res) => {
       .autopad()
       .on("end", async function () {
         // await checkFileSize(`./media/video/${req.file.originalname}`);
-        fs.unlinkSync(inputFile);
         // fs.unlinkSync(req.file.originalname)
-        const user = await User.findById(req.user.id).select("-password");
+        ffmpeg(inputFile)
+        .screenshots({
+          timestamps: ['00:00:02'],
+          filename: `${req.file.originalname}_thumbnail.png`,
+          folder: './media/thumbnail',
+          size: '400x350'
+        });
+        fs.unlinkSync(inputFile);
+
         const newPost = new Post({
           text: text,
           user: req.user.id,
@@ -119,23 +122,12 @@ router.post("/video", upload.single("video"), auth, async (req, res) => {
           postType: postType,
           location: location,
           mimeType: req.file.mimetype,
-          thumbnail_url: `media/thumbnail/${req.file.filename}_thumbnail.png`,
+          thumbnail_url: `media/thumbnail/${req.file.originalname}_thumbnail.png`,
         });
         console.log("Files uploaded successfully.");
-
         const post = await newPost.save();
         return res.json({ post, status: 200 });
-      })
-      .run();
-
-    //   ffmpeg(req.file.path)
-    // .screenshots({
-    //   timestamps: ['00:00:02'],
-    //   filename: `${req.file.filename}_thumbnail.png`,
-    //   folder: './media/thumbnail',
-    //   size: '400x350'
-    // });
-
+      }).run();
     //   const user = await User.findById(req.user.id).select("-password");
     //     const newPost = new Post({
     //       text: text,

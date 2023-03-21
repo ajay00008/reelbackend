@@ -15,15 +15,35 @@ const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegPath);
 const genThumbnail = require('simple-thumbnail')
+const fs = require("fs");
+const path = require("path");
+const uploadVideo = require("../../middleware/localVideoStorage");
 
 
 
 // Create Reel
-router.post("/",upload.single('video'), auth, async (req, res) => {
+router.post("/",uploadVideo.single('video'), auth, async (req, res) => {
     const { text, postType, image } = req.body;
-    console.log(req.file)
     try {
-      const user = await User.findById(req.user.id).select("-password");
+      const inputBuffer = req.file.buffer;
+      const inputFileExtension = path.extname(req.file.originalname);
+      const today = new Date();
+      const dateTime = today.toLocaleString();
+      const inputFile = `./media/video/${req.file.originalname}${inputFileExtension}`;
+      console.log("Saving file to disk...", inputFile);
+  
+      fs.writeFileSync(inputFile, inputBuffer);
+      console.log("File saved to disk.");
+
+      ffmpeg(inputFile)
+      .output(`./media/video/${req.file.originalname}`)
+      .videoCodec("libx264")
+      .audioCodec("aac")
+      .videoBitrate("300", true)
+      .autopad()
+      .on("end", async function () {
+        fs.unlinkSync(inputFile);
+        const user = await User.findById(req.user.id).select("-password");
         const newReel = new Post({
           text: text,
           user: req.user.id,
@@ -34,6 +54,9 @@ router.post("/",upload.single('video'), auth, async (req, res) => {
         });
         const reel = await newReel.save();
         return res.json({ reel, status: 200 });
+      })
+  
+     
     } catch (err) {
       console.log(err.message);
       res.status(500).send("Server Error");

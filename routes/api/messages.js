@@ -16,6 +16,10 @@ const ffmpeg = require("fluent-ffmpeg");
 ffmpeg.setFfmpegPath(ffmpegPath);
 const genThumbnail = require("simple-thumbnail");
 const { currentBaseUrl } = require("../../utils/activeUrl");
+const fs = require("fs");
+const path = require("path");
+const uploadVideo = require("../../middleware/localVideoStorage");
+
 
 
 router.get("/:id", auth, async (req, res) => {
@@ -91,27 +95,49 @@ router.post("/", auth, async (req, res) => {
 });
 
 
-router.post("/reelmessage",upload.single('video'), auth, async (req, res) => {
+router.post("/reelmessage",uploadVideo.single('video'), auth, async (req, res) => {
   const { roomId, user, reciver, text, reel, image, isReelCompleted, reelVideo } = req.body;
-  console.log(reelVideo,'REEL')
   try {
-    const newMessage = await new Message({
-      roomId: roomId,
-      sender: user,
-      reciever: reciver,
-      image: image ? image: null,
-      video: `media/video/${req.file.originalname}`,
-      reelVideo: reelVideo ? reelVideo : null,
-      message: text,
-      reel:reel ? reel : false,
-      isReelCompleted:isReelCompleted ? isReelCompleted :false
-    });
+    const inputBuffer = req.file.buffer;
+    const inputFileExtension = path.extname(req.file.originalname);
+    const today = new Date();
+    const dateTime = today.toLocaleString();
+    const inputFile = `./media/video/${req.file.originalname}${inputFileExtension}`;
+    console.log("Saving file to disk...", inputFile);
 
-    console.log(newMessage,'New Message')
+    fs.writeFileSync(inputFile, inputBuffer);
+    console.log("File saved to disk.");
 
-    await newMessage.save();
+    console.log(`Checking input filesize in bytes`);
+    ffmpeg(inputFile)
+      .output(`./media/video/${req.file.originalname}`)
+      .videoCodec("libx264")
+      .audioCodec("aac")
+      .videoBitrate("300", true)
+      .autopad()
+      .on("end", async function () {
+        fs.unlinkSync(inputFile);
+        const newMessage = await new Message({
+          roomId: roomId,
+          sender: user,
+          reciever: reciver,
+          image: image ? image: null,
+          video: `media/video/${req.file.originalname}`,
+          reelVideo: reelVideo ? reelVideo : null,
+          message: text,
+          reel:reel ? reel : false,
+          isReelCompleted:isReelCompleted ? isReelCompleted :false
+        });
+    
+        console.log(newMessage,'New Message')
+    
+        await newMessage.save();
+    
+        return res.json({ newMessage, status: 200 });
+      }).run()
 
-    return res.json({ newMessage, status: 200 });
+
+    
   } catch (err) {
     console.log(err,'Err')
     console.log(err.message);
