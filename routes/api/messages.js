@@ -50,14 +50,14 @@ router.get("/:id", auth, async (req, res) => {
         user: {
           _id: user.user._id,
           name: user.user.username,
-          avatar: `${url}${user.user.media}`,
+          avatar: `${user.user.media}`,
         },
         createdAt: user.createdAt,
         text: user.text,
         _id: user._id,
-        image: user.image ? `${url}${user.image}` : null,
-        video: user.video ? `${url}${user.video}` : null,
-        reelVideo: user.reelVideo ? `${url}${user.reelVideo}` : null,
+        image: user.image ? `${user.image}` : null,
+        video: user.video ? `${user.video}` : null,
+        reelVideo: user.reelVideo ? `${user.reelVideo}` : null,
         reel: user.reel,
         messageType:user.messageType,
         isReelCompleted:user.isReelCompleted
@@ -96,7 +96,7 @@ router.post("/", auth, async (req, res) => {
 
 
 router.post("/reelmessage", auth, async (req, res) => {
-  const { roomId, user, reciver, text, reel, image, isReelCompleted, reelVideo } = req.body;
+  const { roomId, user, reciver, text, reel, image, isReelCompleted, reelVideo, video } = req.body;
   try {
     // const inputBuffer = req.file.buffer;
     // const inputFileExtension = path.extname(req.file.originalname);
@@ -109,32 +109,35 @@ router.post("/reelmessage", auth, async (req, res) => {
     // console.log("File saved to disk.");
 
     // console.log(`Checking input filesize in bytes`);
-      ffmpeg(req.files.video.tempFilePath)
-      .output(`./media/video/${req.files.video.name}`)
-      .videoCodec("libx264")
-      .audioCodec("aac")
-      .videoBitrate("500", true)
-      .autopad()
-      .on("end", async function () {
-        // fs.unlinkSync(req.file.path);
-        const newMessage = await new Message({
-          roomId: roomId,
-          sender: user,
-          reciever: reciver,
-          image: image ? image: null,
-          video: `media/video/${req.files.video.name}`,
-          reelVideo: reelVideo ? reelVideo : null,
-          message: text,
-          reel:reel ? reel : false,
-          isReelCompleted:isReelCompleted ? isReelCompleted :false
-        });
-    
-        console.log(newMessage,'New Message')
-    
-        await newMessage.save();
-    
-        return res.json({ newMessage, status: 200 });
-      }).run()
+      // ffmpeg(req.files.video.tempFilePath)
+      // .output(`./media/video/${req.files.video.name}`)
+      // .videoCodec("libx264")
+      // .audioCodec("aac")
+      // .videoBitrate("500", true)
+      // .autopad()
+      // .on("end", async function () {
+      //   // fs.unlinkSync(req.file.path);
+  
+      // }).run()
+
+
+      const newMessage = await new Message({
+        roomId: roomId,
+        sender: user,
+        reciever: reciver,
+        image: image ? image: null,
+        video: video ? video : null,
+        reelVideo: reelVideo ? reelVideo : null,
+        message: text,
+        reel:reel ? reel : false,
+        isReelCompleted:isReelCompleted ? isReelCompleted :false
+      });
+  
+      console.log(newMessage,'New Message')
+  
+      await newMessage.save();
+  
+      return res.json({ newMessage, status: 200 });
 
 
     

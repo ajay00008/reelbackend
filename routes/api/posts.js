@@ -61,18 +61,16 @@ const checkFileSize = async (filePath) => {
 
 // Create Post
 router.post("/", auth, async (req, res) => {
-  const { text, postType, location } = req.body;
+  const { text, postType, location, media, mimeType } = req.body;
   try {
-    var file = req.files.image
-    file.mv(`./media/image/${req.files.image.name}`)
     const user = await User.findById(req.user.id).select("-password");
     const newPost = new Post({
       text: text,
       user: req.user.id,
-      media: `media/image/${req.files.image.name}`,
+      media: media,
       postType: postType,
       location: location,
-      mimeType: req.files.image.mimetype,
+      mimeType: mimeType,
     });
     const post = await newPost.save();
     return res.json({ post, status: 200 });
@@ -199,7 +197,7 @@ router.get("/story", auth, async (req, res) => {
 
       if (index > -1) {
         var story_id = post[i]._id;
-        var story_image = `${url}${post[i].media}`;
+        var story_image = `${post[i].media}`;
         var newStory = {
           story_id,
           story_image,
@@ -209,10 +207,10 @@ router.get("/story", auth, async (req, res) => {
         var user_id = post[i].user._id;
         var user_name = post[i].user.username;
         var user_image = post[i].user.media
-          ? `${url}${post[i].user.media}`
+          ? `${post[i].user.media}`
           : "https://t4.ftcdn.net/jpg/03/59/58/91/360_F_359589186_JDLl8dIWoBNf1iqEkHxhUeeOulx0wOC5.jpg";
         var story_id = post[i]._id;
-        var story_image = `${url}${post[i].media}`;
+        var story_image = `${post[i].media}`;
         var newStory = {
           story_id,
           story_image,

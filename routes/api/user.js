@@ -72,10 +72,8 @@ router.post("/unfollow/:id", auth, async (req, res) => {
 
 //Update User Details
 router.post('/update',auth, async (req, res) => {
-  const { firstName, lastName, description } = req.body
+  const { firstName, lastName, description, media } = req.body
   try {
-      var file = req.files.image
-      file.mv(`./media/image/${req.files.image.name}`)
       var user = await User.findById(req.user.id);
       if (!user) {
           return res.json({ msg: 'No User Found' })
@@ -83,7 +81,7 @@ router.post('/update',auth, async (req, res) => {
       user.firstName = firstName ? firstName : user.firstName;
       user.lastName = lastName ? lastName : user.lastName;
       user.description = description ? description : user.description;
-      user.media = req.files.image.name ? `media/image/${req.files.image.name}` : user.media;
+      user.media = media ? media : user.media;
       await user.save();
       return res.json({ msg: "User Updated", user  });
 
