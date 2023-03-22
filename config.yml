@@ -1,0 +1,5 @@
+authtoken: 2NLMH8kwp7qjVoWXFuiVc8BuUpx_5ykSGVTPKoB8yc6V9jGN3
+tunnels:
+    default:
+        proto: http
+        addr: 5000
