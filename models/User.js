@@ -32,7 +32,7 @@ const UserSchema = new mongoose.Schema({
     gender: {
         type: String,
     },
-    pushToken: {
+    fcmToken: {
         type: String
     },
     following:[

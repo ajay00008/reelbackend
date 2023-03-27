@@ -18,6 +18,13 @@ const fs = require("fs");
 const path = require("path");
 const { Readable } = require('stream');
 const uploadVideo = require("../../middleware/localVideoStorage");
+const admin = require('firebase-admin')
+var serviceAccount = require('../../reelmail-firebase-adminsdk-ci668-ad3d00315a.json')
+admin.initializeApp({
+  credential:admin.credential.cert(serviceAccount)
+})
+
+
 
 
 // const multerMemoryStorage = multer.memoryStorage();
@@ -223,7 +230,6 @@ router.get("/story", auth, async (req, res) => {
         };
         totalRecords[j++] = newObj;
       }
-      console.log(totalRecords, "TOTAL");
     }
 
     return res.json({ totalRecords, status: 200 });
@@ -282,7 +288,16 @@ router.put("/like/:id", auth, async (req, res) => {
     } else {
       post.likes.unshift({ user: req.user.id });
       await post.save();
-      notificationUsers.push(post.user.pushToken);
+      // console.log(post.user,'USER')
+      notificationUsers.push(post.user.fcmToken);
+      admin.messaging().send({
+        notification: {
+          title: 'Reelmail',
+          body:  `${user.firstName} Liked Your Post`,
+          imageUrl: 'https://my-cdn.com/app-logo.png',
+        },
+        token:post.user.fcmToken      
+      })      
       sendNotifications(
         notificationUsers,
         "Reelmail",

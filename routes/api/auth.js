@@ -150,4 +150,20 @@ router.post(
   }
 );
 
+//Update Device Token
+router.post('/update-token', auth, async (req, res) => {
+    var { fcmToken } = req.body
+    try {
+        var user = await User.findById(req.user.id)
+        if (user) {
+            user.fcmToken = fcmToken
+        }
+        await user.save()
+        return res.json({ msg: 'Expo Token Updated' })
+    } catch (err) {
+        console.log(err.message)
+        res.status(500).send("Server error")
+    } 
+})
+
 module.exports = router;
