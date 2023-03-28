@@ -10,48 +10,8 @@ const ffmpeg = require("fluent-ffmpeg");
 ffmpeg.setFfmpegPath(ffmpegPath);
 const fs = require("fs");
 const sendFirebaseNotifications = require("../../middleware/notifications");
+const Notification = require("../../models/Notification");
 
-
-
-
-// const multerMemoryStorage = multer.memoryStorage();
-// const multerUploadInMemory = multer({
-//   storage: multerMemoryStorage,
-// });
-
-// aws.config.update({
-//   credentials: {
-//     accessKeyId: "AKIAXKJA67ZDLQXTQDET",
-//     secretAccessKey: "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",
-//     region: "us-east-2",
-//   },
-// });
-// const fileFilter = (req, file, cb) => {
-//   return file.mimetype
-// }
-
-// s3 = new aws.S3();
-// var upload = multer({
-//   storage: multerS3({
-//       s3: s3,
-//       acl: 'public-read',
-//       bucket: 'reelmails',
-//       contentType: multerS3.AUTO_CONTENT_TYPE,
-//       key: function (req, file, cb) {
-//           console.log(file);
-//           cb(null, file.originalname); //use Date.now() for unique file keys
-//       }
-//   })
-// });
-
-// const S3 = new aws.S3({});
-
-const checkFileSize = async (filePath) => {
-  const stats = fs.statSync(filePath);
-  const fileSizeInBytes = stats.size;
-  console.log(`Video file size: ${fileSizeInBytes} bytes`);
-  return fileSizeInBytes;
-};
 
 // Create Post
 router.post("/", auth, async (req, res) => {
@@ -120,23 +80,6 @@ router.post("/video", auth, async (req, res) => {
         return res.json({ post, status: 200 });
       }).run();
 
-
-    // console.log(req.files, postType)
-
-
-    //   const user = await User.findById(req.user.id).select("-password");
-    //     const newPost = new Post({
-    //       text: text,
-    //       user: req.user.id,
-    //       media: `media/video/${req.file.originalname}`,
-    //       postType: postType,
-    //       location:location,
-    //       mimeType:req.file.mimetype,
-    //       thumbnail_url:`media/thumbnail/${req.file.filename}_thumbnail.png`
-    //     });
-    //     const post = await newPost.save();
-    //     return res.json({ post, status: 200 });
-    // }
   } catch (err) {
     console.log(err.message);
     res.status(500).send("Server Error");
@@ -275,14 +218,14 @@ router.put("/like/:id", auth, async (req, res) => {
     } else {
       post.likes.unshift({ user: req.user.id });
       await post.save();
-      // console.log(post.user,'USER')
-      // notificationUsers.push(post.user.fcmToken);
       sendFirebaseNotifications(`${user.firstName} Liked Your Post`, post.user.fcmToken, post?._id.toString(), 'post')
-      // sendNotifications(
-      //   notificationUsers,
-      //   "Reelmail",
-      //   `${user.firstName} Liked Your Post`
-      // );
+      var userNotification = new Notification({
+        message:`${user.firstName} Liked Your Post`,
+        post:post?._id,
+        user:post?.user?._id,
+        type:'post'
+      })
+      await userNotification.save()
       res.json({ post, status: 200, msg: "Post Liked" });
     }
   } catch (err) {
@@ -312,14 +255,14 @@ router.post(
       post.comments.unshift(newComment);
       await post.save();
       sendFirebaseNotifications(`${user.firstName} Commented On Your Post`, post.user.fcmToken, post?._id.toString(), 'post')
-
-      // notificationUsers.push(post.user.pushToken);
-      // sendNotifications(
-      //   notificationUsers,
-      //   "Reelmail",
-      //   `${user.firstName} Commented On Your Post`
-      // );
-
+      var userNotification = new Notification({
+        message:`${user.firstName} Commented On Your Post`,
+        post:post?._id,
+        user:post?.user?._id,
+        type:'post'
+      })
+      await userNotification.save()
+      res.json({ post, status: 200, msg: "Post Liked" });
       res.json({ post, msg: "Comment Added", status: 200 });
     } catch (err) {
       console.log(err.message);
