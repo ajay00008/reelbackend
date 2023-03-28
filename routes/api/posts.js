@@ -223,6 +223,7 @@ router.put("/like/:id", auth, async (req, res) => {
         message:`${user.firstName} Liked Your Post`,
         post:post?._id,
         user:post?.user?._id,
+        otherUser:user?._id,
         type:'post'
       })
       await userNotification.save()
@@ -259,6 +260,7 @@ router.post(
         message:`${user.firstName} Commented On Your Post`,
         post:post?._id,
         user:post?.user?._id,
+        otherUser:user?._id,
         type:'post'
       })
       await userNotification.save()

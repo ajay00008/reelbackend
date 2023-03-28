@@ -6,8 +6,9 @@ const { check, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("config");
-const sendNotifications = require("../../middleware/notifications");
+const sendFirebaseNotifications = require("../../middleware/notifications");
 const upload = require("../../middleware/localStorage");
+const Notification = require("../../models/Notification");
 
 
 
@@ -35,11 +36,23 @@ router.post("/follow/:id", auth, async (req, res) => {
     await followerUser.save();
     await followingUser.save();
     notificationUsers.push(followerUser.pushToken);
-    sendNotifications(
-      notificationUsers,
-      "Reelmail",
-      `${followingUser.firstName} Started Following You`
-    );
+    if(followerUser.fcmToken){
+      sendFirebaseNotifications(`${followingUser.firstName} Started Following You`, followerUser.fcmToken, followerUser._id.toString(), 'profile')
+      var userNotification = new Notification({
+        message:`${followingUser.firstName} Started Following You`,
+        post:null,
+        user:followerUser?._id,
+        otherUser:followingUser?._id,
+        type:'profile'
+      })
+    }
+  
+    await userNotification.save()
+    // sendNotifications(
+    //   notificationUsers,
+    //   "Reelmail",
+    //   `${followingUser.firstName} Started Following You`
+    // );
     return res.json({
       followingUser,
       msg: `You are now following`,

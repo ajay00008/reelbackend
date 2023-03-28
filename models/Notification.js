@@ -8,6 +8,10 @@ const NotificationSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user'
     },
+    otherUser: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user'
+    },
     type: {
         type: String
     },
