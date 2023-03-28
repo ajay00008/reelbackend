@@ -14,21 +14,14 @@ const { baseUrl } = require("../../utils/url");
 const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
 const ffmpeg = require("fluent-ffmpeg");
 ffmpeg.setFfmpegPath(ffmpegPath);
-const genThumbnail = require("simple-thumbnail");
-const { currentBaseUrl } = require("../../utils/activeUrl");
-const fs = require("fs");
-const path = require("path");
-const uploadVideo = require("../../middleware/localVideoStorage");
-
-
+const sendFirebaseNotifications = require("../../middleware/notifications");
 
 router.get("/:id", auth, async (req, res) => {
-  const url = baseUrl(req)
+  const url = baseUrl(req);
   try {
     var messages = await Message.find({ roomId: req.params.id })
       .sort({ date: -1 })
       .populate("sender");
-
 
     var newMessages = messages.map((val) => {
       return {
@@ -39,9 +32,9 @@ router.get("/:id", auth, async (req, res) => {
         image: val.image ? val.image : undefined,
         video: val.video ? val.video : undefined,
         reelVideo: val.reelVideo ? val.reelVideo : undefined,
-        reel:val.reel,
-        messageType:val.messageType,
-        isReelCompleted:val.isReelCompleted
+        reel: val.reel,
+        messageType: val.messageType,
+        isReelCompleted: val.isReelCompleted,
       };
     });
 
@@ -59,8 +52,8 @@ router.get("/:id", auth, async (req, res) => {
         video: user.video ? `${user.video}` : null,
         reelVideo: user.reelVideo ? `${user.reelVideo}` : null,
         reel: user.reel,
-        messageType:user.messageType,
-        isReelCompleted:user.isReelCompleted
+        messageType: user.messageType,
+        isReelCompleted: user.isReelCompleted,
       };
     });
 
@@ -72,20 +65,30 @@ router.get("/:id", auth, async (req, res) => {
 });
 
 router.post("/", auth, async (req, res) => {
-  const { roomId, user, reciver, text, reel, image, video, isReelCompleted } = req.body;
+  const { roomId, user, reciver, text, reel, image, video, isReelCompleted } =
+    req.body;
   try {
     const newMessage = await new Message({
       roomId: roomId,
       sender: user,
       reciever: reciver,
-      image: image ? image: null,
-      video:video ? video : null,
+      image: image ? image : null,
+      video: video ? video : null,
       message: text,
-      reel:reel ? reel : false,
-      isReelCompleted:isReelCompleted ? isReelCompleted :false
+      reel: reel ? reel : false,
+      isReelCompleted: isReelCompleted ? isReelCompleted : false,
     });
-
+    const recUser = await User.findById(reciver);
+    const sendingUser = await User.findById(user);
     await newMessage.save();
+    if (recUser.fcmToken) {
+      sendFirebaseNotifications(
+        `${sendingUser.firstName} Sent You A Post`,
+        recUser.fcmToken,
+        JSON.stringify(sendingUser),
+        "chat"
+      );
+    }
 
     return res.json({ newMessage, status: 200 });
   } catch (err) {
@@ -94,55 +97,46 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
-
 router.post("/reelmessage", auth, async (req, res) => {
-  const { roomId, user, reciver, text, reel, image, isReelCompleted, reelVideo, video } = req.body;
+  const {
+    roomId,
+    user,
+    reciver,
+    text,
+    reel,
+    image,
+    isReelCompleted,
+    reelVideo,
+    video,
+  } = req.body;
   try {
-    // const inputBuffer = req.file.buffer;
-    // const inputFileExtension = path.extname(req.file.originalname);
-    // const today = new Date();
-    // const dateTime = today.toLocaleString();
-    // const inputFile = `./media/video/${req.file.originalname}${inputFileExtension}`;
-    // console.log("Saving file to disk...", inputFile);
+    const newMessage = await new Message({
+      roomId: roomId,
+      sender: user,
+      reciever: reciver,
+      image: image ? image : null,
+      video: video ? video : null,
+      reelVideo: reelVideo ? reelVideo : null,
+      message: text,
+      reel: reel ? reel : false,
+      isReelCompleted: isReelCompleted ? isReelCompleted : false,
+    });
+    const recUser = await User.findById(reciver);
+    const sendingUser = await User.findById(user);
 
-    // fs.writeFileSync(inputFile, inputBuffer);
-    // console.log("File saved to disk.");
+    await newMessage.save();
+    if (recUser.fcmToken) {
+      sendFirebaseNotifications(
+        `${sendingUser.firstName} Sent You A Post`,
+        recUser.fcmToken,
+        JSON.stringify(sendingUser),
+        "chat"
+      );
+    }
 
-    // console.log(`Checking input filesize in bytes`);
-      // ffmpeg(req.files.video.tempFilePath)
-      // .output(`./media/video/${req.files.video.name}`)
-      // .videoCodec("libx264")
-      // .audioCodec("aac")
-      // .videoBitrate("500", true)
-      // .autopad()
-      // .on("end", async function () {
-      //   // fs.unlinkSync(req.file.path);
-  
-      // }).run()
-
-
-      const newMessage = await new Message({
-        roomId: roomId,
-        sender: user,
-        reciever: reciver,
-        image: image ? image: null,
-        video: video ? video : null,
-        reelVideo: reelVideo ? reelVideo : null,
-        message: text,
-        reel:reel ? reel : false,
-        isReelCompleted:isReelCompleted ? isReelCompleted :false
-      });
-  
-      console.log(newMessage,'New Message')
-  
-      await newMessage.save();
-  
-      return res.json({ newMessage, status: 200 });
-
-
-    
+    return res.json({ newMessage, status: 200 });
   } catch (err) {
-    console.log(err,'Err')
+    console.log(err, "Err");
     console.log(err.message);
     res.status(500).send("Server Error");
   }

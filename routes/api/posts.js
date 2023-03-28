@@ -5,24 +5,11 @@ const User = require("../../models/User");
 const Post = require("../../models/Posts");
 const { check, validationResult } = require("express-validator");
 const sendNotifications = require("../../middleware/notifications");
-const aws = require("aws-sdk");
-const multer = require("multer");
-const multerS3 = require("multer-s3");
-const upload = require("../../middleware/localStorage");
-const { baseUrl } = require("../../utils/url");
 const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
 const ffmpeg = require("fluent-ffmpeg");
 ffmpeg.setFfmpegPath(ffmpegPath);
-const genThumbnail = require("simple-thumbnail");
 const fs = require("fs");
-const path = require("path");
-const { Readable } = require('stream');
-const uploadVideo = require("../../middleware/localVideoStorage");
-const admin = require('firebase-admin')
-var serviceAccount = require('../../reelmail-firebase-adminsdk-ci668-ad3d00315a.json')
-admin.initializeApp({
-  credential:admin.credential.cert(serviceAccount)
-})
+const sendFirebaseNotifications = require("../../middleware/notifications");
 
 
 
@@ -242,7 +229,7 @@ router.get("/story", auth, async (req, res) => {
 // Get Post By Id
 router.get("/:id", auth, async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
+    const post = await Post.findById(req.params.id).populate('user');
     if (!post) {
       return res.status(404).json({ msg: "Post not found" });
     }
@@ -289,20 +276,13 @@ router.put("/like/:id", auth, async (req, res) => {
       post.likes.unshift({ user: req.user.id });
       await post.save();
       // console.log(post.user,'USER')
-      notificationUsers.push(post.user.fcmToken);
-      admin.messaging().send({
-        notification: {
-          title: 'Reelmail',
-          body:  `${user.firstName} Liked Your Post`,
-          imageUrl: 'https://my-cdn.com/app-logo.png',
-        },
-        token:post.user.fcmToken      
-      })      
-      sendNotifications(
-        notificationUsers,
-        "Reelmail",
-        `${user.firstName} Liked Your Post`
-      );
+      // notificationUsers.push(post.user.fcmToken);
+      sendFirebaseNotifications(`${user.firstName} Liked Your Post`, post.user.fcmToken, post?._id.toString(), 'post')
+      // sendNotifications(
+      //   notificationUsers,
+      //   "Reelmail",
+      //   `${user.firstName} Liked Your Post`
+      // );
       res.json({ post, status: 200, msg: "Post Liked" });
     }
   } catch (err) {
@@ -331,12 +311,14 @@ router.post(
 
       post.comments.unshift(newComment);
       await post.save();
-      notificationUsers.push(post.user.pushToken);
-      sendNotifications(
-        notificationUsers,
-        "Reelmail",
-        `${user.firstName} Commented On Your Post`
-      );
+      sendFirebaseNotifications(`${user.firstName} Commented On Your Post`, post.user.fcmToken, post?._id.toString(), 'post')
+
+      // notificationUsers.push(post.user.pushToken);
+      // sendNotifications(
+      //   notificationUsers,
+      //   "Reelmail",
+      //   `${user.firstName} Commented On Your Post`
+      // );
 
       res.json({ post, msg: "Comment Added", status: 200 });
     } catch (err) {

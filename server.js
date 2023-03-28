@@ -2,11 +2,13 @@ const express = require("express");
 const connectDB = require("./config/db");
 const fileUpload = require("express-fileupload");
 const path  = require('path')
+const sendFirebaseNotifications = require("./middleware/notifications");
 
 
 var cors = require("cors");
 const Message = require("./models/Message");
 const { socketBaseUrl, currentBaseUrl } = require("./utils/activeUrl");
+const User = require("./models/User");
 const app = express();
 
 connectDB();
@@ -98,6 +100,10 @@ io.on("connection", (socket) => {
       message:newMessageRec.text,
     })
     await newMessage.save()
+    const sendingUser = await User.findById(newMessageRec.user._id)
+    if(newMessageRec.reciver.fcmToken){
+      sendFirebaseNotifications(`${newMessageRec.user.name} Sent You A Message`, newMessageRec.reciver.fcmToken, JSON.stringify(sendingUser), 'chat')
+    }
   })
 
 })

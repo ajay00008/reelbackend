@@ -1,6 +1,11 @@
 const {Expo} = require('expo-server-sdk')
 
 let expo = new Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
+const admin = require('firebase-admin')
+var serviceAccount = require('../reelmail-firebase-adminsdk-ci668-ad3d00315a.json')
+admin.initializeApp({
+  credential:admin.credential.cert(serviceAccount)
+})
 
 
 module.exports = function sendNotifications(userArray,title,body) {
@@ -83,4 +88,24 @@ module.exports = function sendNotifications(userArray,title,body) {
             }
         }
     })();
+}
+
+module.exports = function sendFirebaseNotifications(msg, token, contentId, type) {
+    try{
+        admin.messaging().send({
+            data:{
+                'contentId':contentId,
+                'type':type
+            },
+            notification: {
+              title: 'Reelmail',
+              body:  msg,
+              imageUrl: 'https://my-cdn.com/app-logo.png',
+            },
+            token:token      
+          })  
+    } catch(err) {
+        console.log(err)
+    }
+    
 }
