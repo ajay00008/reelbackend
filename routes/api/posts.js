@@ -264,7 +264,6 @@ router.post(
         type:'post'
       })
       await userNotification.save()
-      res.json({ post, status: 200, msg: "Post Liked" });
       res.json({ post, msg: "Comment Added", status: 200 });
     } catch (err) {
       console.log(err.message);
