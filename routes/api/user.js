@@ -45,9 +45,9 @@ router.post("/follow/:id", auth, async (req, res) => {
         otherUser:followingUser?._id,
         type:'profile'
       })
+      await userNotification.save()
     }
   
-    await userNotification.save()
     // sendNotifications(
     //   notificationUsers,
     //   "Reelmail",
