@@ -121,7 +121,6 @@ router.get("/user/:id", auth, async (req, res) => {
 // Get All Post
 router.get("/story", auth, async (req, res) => {
   try {
-    const url = baseUrl(req);
     const post = await Post.find({ postType: "Story" })
       .sort({ date: -1 })
       .populate("user");

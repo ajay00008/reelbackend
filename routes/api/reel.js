@@ -10,7 +10,6 @@ const aws = require("aws-sdk");
 const multer = require("multer");
 const multerS3 = require('multer-s3');
 const upload = require("../../middleware/localStorage");
-const { baseUrl } = require('../../utils/url');
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegPath);

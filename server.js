@@ -7,7 +7,6 @@ const sendFirebaseNotifications = require("./middleware/notifications");
 
 var cors = require("cors");
 const Message = require("./models/Message");
-const { socketBaseUrl, currentBaseUrl } = require("./utils/activeUrl");
 const User = require("./models/User");
 const app = express();
 

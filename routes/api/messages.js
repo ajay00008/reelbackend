@@ -10,14 +10,12 @@ const aws = require("aws-sdk");
 const multer = require("multer");
 const multerS3 = require("multer-s3");
 const upload = require("../../middleware/localStorage");
-const { baseUrl } = require("../../utils/url");
 const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
 const ffmpeg = require("fluent-ffmpeg");
 ffmpeg.setFfmpegPath(ffmpegPath);
 const sendFirebaseNotifications = require("../../middleware/notifications");
 
 router.get("/:id", auth, async (req, res) => {
-  const url = baseUrl(req);
   try {
     var messages = await Message.find({ roomId: req.params.id })
       .sort({ date: -1 })
