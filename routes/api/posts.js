@@ -12,7 +12,6 @@ const fs = require("fs");
 const sendFirebaseNotifications = require("../../middleware/notifications");
 const Notification = require("../../models/Notification");
 
-
 // Create Post
 router.post("/", auth, async (req, res) => {
   const { text, postType, location, media, mimeType } = req.body;
@@ -55,14 +54,12 @@ router.post("/video", auth, async (req, res) => {
       .videoBitrate("500", true)
       .autopad()
       .on("end", async function () {
-
         // await checkFileSize(`./media/video/${req.file.originalname}`);
-        ffmpeg(req.files.video.tempFilePath)
-        .screenshots({
-          timestamps: ['00:00:02'],
+        ffmpeg(req.files.video.tempFilePath).screenshots({
+          timestamps: ["00:00:02"],
           filename: `${req.files.video.name}_thumbnail.png`,
-          folder: './media/thumbnail',
-          size: '400x350'
+          folder: "./media/thumbnail",
+          size: "400x350",
         });
         // fs.unlinkSync(inputFile);
 
@@ -78,8 +75,8 @@ router.post("/video", auth, async (req, res) => {
         console.log("Files uploaded successfully.");
         const post = await newPost.save();
         return res.json({ post, status: 200 });
-      }).run();
-
+      })
+      .run();
   } catch (err) {
     console.log(err.message);
     res.status(500).send("Server Error");
@@ -171,7 +168,7 @@ router.get("/story", auth, async (req, res) => {
 // Get Post By Id
 router.get("/:id", auth, async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id).populate('user');
+    const post = await Post.findById(req.params.id).populate("user");
     if (!post) {
       return res.status(404).json({ msg: "Post not found" });
     }
@@ -217,15 +214,20 @@ router.put("/like/:id", auth, async (req, res) => {
     } else {
       post.likes.unshift({ user: req.user.id });
       await post.save();
-      sendFirebaseNotifications(`${user.firstName} Liked Your Post`, post.user.fcmToken, post?._id.toString(), 'post')
+      sendFirebaseNotifications(
+        `${user.firstName} Liked Your Post`,
+        post.user.fcmToken,
+        post?._id.toString(),
+        "post"
+      );
       var userNotification = new Notification({
-        message:`${user.firstName} Liked Your Post`,
-        post:post?._id,
-        user:post?.user?._id,
-        otherUser:user?._id,
-        type:'post'
-      })
-      await userNotification.save()
+        message: `${user.firstName} Liked Your Post`,
+        post: post?._id,
+        user: post?.user?._id,
+        otherUser: user?._id,
+        type: "post",
+      });
+      await userNotification.save();
       res.json({ post, status: 200, msg: "Post Liked" });
     }
   } catch (err) {
@@ -254,15 +256,20 @@ router.post(
 
       post.comments.unshift(newComment);
       await post.save();
-      sendFirebaseNotifications(`${user.firstName} Commented On Your Post`, post.user.fcmToken, post?._id.toString(), 'post')
+      sendFirebaseNotifications(
+        `${user.firstName} Commented On Your Post`,
+        post.user.fcmToken,
+        post?._id.toString(),
+        "post"
+      );
       var userNotification = new Notification({
-        message:`${user.firstName} Commented On Your Post`,
-        post:post?._id,
-        user:post?.user?._id,
-        otherUser:user?._id,
-        type:'post'
-      })
-      await userNotification.save()
+        message: `${user.firstName} Commented On Your Post`,
+        post: post?._id,
+        user: post?.user?._id,
+        otherUser: user?._id,
+        type: "post",
+      });
+      await userNotification.save();
       res.json({ post, msg: "Comment Added", status: 200 });
     } catch (err) {
       console.log(err.message);
@@ -313,5 +320,37 @@ router.delete("/comment/:id/:comment_id", auth, async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
+
+// Add Comment Reply
+router.post(
+  "/comment/reply/:id",
+  [auth, [check("text", "text is required").not().isEmpty()]],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    var notificationUsers = [];
+    try {
+      const user = await User.findById(req.user.id).select("-password");
+      const post = await Post.findById(req.params.id).populate("user");
+      const newReply = {
+        text: req.body.text,
+        user: req.user.id,
+      };
+      post.comments.map((val, index) => {
+        if (val._id == req.body.commentId) {
+          val.replies.unshift(newReply);
+          val.isReplied = true;
+        }
+      });
+
+      await post.save();
+    } catch (err) {
+      console.log(err.message);
+      res.status(500).send("Server Error");
+    }
+  }
+);
 
 module.exports = router;
