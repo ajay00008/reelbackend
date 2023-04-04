@@ -284,6 +284,9 @@ router.get("/comment/:id", auth, async (req, res) => {
     const post = await Post.findById(req.params.id).populate({
       path: "comments.user",
       model: "user",
+    }).populate({
+      path: "comments.replies.user",
+      model: "user"
     });
     if (!post) {
       return res.status(404).json({ msg: "Post not found" });
@@ -345,7 +348,10 @@ router.post(
         }
       });
 
+
       await post.save();
+      return res.json({post, status:200})
+
     } catch (err) {
       console.log(err.message);
       res.status(500).send("Server Error");

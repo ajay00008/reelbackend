@@ -166,4 +166,59 @@ router.post('/update-token', auth, async (req, res) => {
     } 
 })
 
+
+// LOGIN
+router.post("/social", async (req, res) => {
+  const { email, firstName, lastName } = req.body;
+  try {
+    let user = await User.findOne({ email });
+    if (user) {
+        const payLoad = {
+          user: {
+            id: user.id,
+          },
+        };
+        jwt.sign(payLoad,'mysecrettoken',{ expiresIn: 36000000 },(err, token) => {
+            if (err) {
+              throw err;
+            }
+            res.json({ token, status: 200, user });
+          }
+        );
+    } else {
+      var randomstring = Math.random().toString(36).slice(-8);
+      user = new User({
+        email,
+        password:randomstring,
+        firstName,
+        lastName,
+        username:firstName+''+lastName
+      });
+      await user.save();
+        const payLoad = {
+          user: {
+            id: user.id,
+          },
+        };
+        jwt.sign(
+          payLoad,
+          'mysecrettoken',
+          { expiresIn: 36000000 },
+          (err, token) => {
+            if (err) {
+              throw err;
+            }
+            res.json({ token, status: 200, msg: "Social User Registered", user });
+          }
+        );
+    }
+    
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server error");
+  }
+});
+
+
+
 module.exports = router;

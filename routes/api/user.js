@@ -105,4 +105,28 @@ router.post('/update',auth, async (req, res) => {
 })
 
 
+//Complete Onboarding
+router.post('/onboarding',auth, async (req, res) => {
+  const { categories } = req.body
+  try {
+      var user = await User.findById(req.user.id);
+      if (!user) {
+          return res.json({ msg: 'No User Found' })
+      }
+      // categories.map(val => {
+      //   user.categories.unshift(val)
+      // })
+
+      // console.log(categories,'CAT')
+      user.isFirstTime = true;
+      await user.save();
+      return res.json({ msg: "User Updated", user  });
+
+  } catch (err) {
+      console.log(err)
+      res.status(500).send("Server Error")
+  }
+})
+
+
 module.exports = router;

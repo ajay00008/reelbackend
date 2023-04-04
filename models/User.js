@@ -35,6 +35,16 @@ const UserSchema = new mongoose.Schema({
     fcmToken: {
         type: String
     },
+    isFirstTime: {
+        type: Boolean,
+        default:false
+    },
+    categories: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref:'categories'
+        }    
+    ],
     following:[
         {
             type: mongoose.Schema.Types.ObjectId,
