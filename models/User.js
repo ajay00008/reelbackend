@@ -22,6 +22,9 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    profile_no: {
+        type: Number
+    },
     lastName: {
         type: String,
         required: true

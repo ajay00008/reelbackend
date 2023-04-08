@@ -93,6 +93,7 @@ router.post(
   async (req, res) => {
     const { email, password, firstName, lastName, gender, username } = req.body;
     try {
+      var userCount = await User.find().count()
       let user = await User.findOne({ email });
       let checkUsername = await User.findOne({username})
       if (user) {
@@ -117,7 +118,8 @@ router.post(
           password,
           firstName,
           lastName,
-          username
+          username,
+          profile_no:userCount+1
         });
   
         const salt = await bcrypt.genSalt(10);
@@ -171,6 +173,7 @@ router.post('/update-token', auth, async (req, res) => {
 router.post("/social", async (req, res) => {
   const { email, firstName, lastName } = req.body;
   try {
+    var userCount = await User.find().count()
     let user = await User.findOne({ email });
     if (user) {
         const payLoad = {
@@ -192,7 +195,8 @@ router.post("/social", async (req, res) => {
         password:randomstring,
         firstName,
         lastName,
-        username:firstName+''+lastName
+        username:firstName+''+lastName,
+        profile_no:userCount+1
       });
       await user.save();
         const payLoad = {
@@ -218,7 +222,5 @@ router.post("/social", async (req, res) => {
     res.status(500).send("Server error");
   }
 });
-
-
 
 module.exports = router;
