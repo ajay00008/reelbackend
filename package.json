@@ -50,6 +50,7 @@
     "multer-s3-transform": "^2.10.3",
     "node-apn": "^3.0.0",
     "nodemon": "^2.0.21",
+    "openai": "^3.2.1",
     "path": "^0.12.7",
     "sharp": "^0.31.3",
     "simple-thumbnail": "^1.6.5",

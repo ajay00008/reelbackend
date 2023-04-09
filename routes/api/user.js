@@ -9,6 +9,11 @@ const config = require("config");
 const sendFirebaseNotifications = require("../../middleware/notifications");
 const upload = require("../../middleware/localStorage");
 const Notification = require("../../models/Notification");
+const { Configuration, OpenAIApi } = require("openai");
+const configuration = new Configuration({
+  apiKey: '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',
+});
+const openai = new OpenAIApi(configuration);
 
 
 
@@ -36,18 +41,18 @@ router.post("/follow/:id", auth, async (req, res) => {
     await followerUser.save();
     await followingUser.save();
     notificationUsers.push(followerUser.pushToken);
-    if(followerUser.fcmToken){
+    if (followerUser.fcmToken) {
       sendFirebaseNotifications(`${followingUser.firstName} Started Following You`, followerUser.fcmToken, followerUser._id.toString(), 'profile')
       var userNotification = new Notification({
-        message:`${followingUser.firstName} Started Following You`,
-        post:null,
-        user:followerUser?._id,
-        otherUser:followingUser?._id,
-        type:'profile'
+        message: `${followingUser.firstName} Started Following You`,
+        post: null,
+        user: followerUser?._id,
+        otherUser: followingUser?._id,
+        type: 'profile'
       })
       await userNotification.save()
     }
-  
+
     // sendNotifications(
     //   notificationUsers,
     //   "Reelmail",
@@ -84,47 +89,64 @@ router.post("/unfollow/:id", auth, async (req, res) => {
 
 
 //Update User Details
-router.post('/update',auth, async (req, res) => {
+router.post('/update', auth, async (req, res) => {
   const { firstName, lastName, description, media } = req.body
   try {
-      var user = await User.findById(req.user.id);
-      if (!user) {
-          return res.json({ msg: 'No User Found' })
-      }
-      user.firstName = firstName ? firstName : user.firstName;
-      user.lastName = lastName ? lastName : user.lastName;
-      user.description = description ? description : user.description;
-      user.media = media ? media : user.media;
-      await user.save();
-      return res.json({ msg: "User Updated", user  });
+    var user = await User.findById(req.user.id);
+    if (!user) {
+      return res.json({ msg: 'No User Found' })
+    }
+    user.firstName = firstName ? firstName : user.firstName;
+    user.lastName = lastName ? lastName : user.lastName;
+    user.description = description ? description : user.description;
+    user.media = media ? media : user.media;
+    await user.save();
+    return res.json({ msg: "User Updated", user });
 
   } catch (err) {
-      console.log(err)
-      res.status(500).send("Server Error")
+    console.log(err)
+    res.status(500).send("Server Error")
   }
 })
 
 
 //Complete Onboarding
-router.post('/onboarding',auth, async (req, res) => {
+router.post('/onboarding', auth, async (req, res) => {
   const { categories } = req.body
   try {
-      var user = await User.findById(req.user.id);
-      if (!user) {
-          return res.json({ msg: 'No User Found' })
-      }
-      // categories.map(val => {
-      //   user.categories.unshift(val)
-      // })
+    var user = await User.findById(req.user.id);
+    if (!user) {
+      return res.json({ msg: 'No User Found' })
+    }
+    // categories.map(val => {
+    //   user.categories.unshift(val)
+    // })
 
-      // console.log(categories,'CAT')
-      user.isFirstTime = true;
-      await user.save();
-      return res.json({ msg: "User Updated", user  });
+    // console.log(categories,'CAT')
+    user.isFirstTime = true;
+    await user.save();
+    return res.json({ msg: "User Updated", user });
 
   } catch (err) {
-      console.log(err)
-      res.status(500).send("Server Error")
+    console.log(err)
+    res.status(500).send("Server Error")
+  }
+})
+
+
+router.post('/image/generate', auth, async (req, res) => {
+  try {
+    const { text } = req.body;
+    const response = await openai.createImage({
+      prompt: text,
+      n: 1,
+      size: "512x512",
+    });
+    var image_url = response.data.data[0].url;
+    return res.json({ msg: 'IMAGE', image_url })
+  } catch (err) {
+    console.log(err)
+    res.status(500).send("Server Error")
   }
 })
 
