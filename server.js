@@ -60,6 +60,7 @@ app.use('/api/user',require('./routes/api/user'))
 app.use('/api/reel',require('./routes/api/reel'))
 app.use('/api/messages',require('./routes/api/messages'))
 app.use('/api/notifications',require('./routes/api/notifications'))
+app.use('/api/subscription',require('./routes/api/subscription'))
 
 
 

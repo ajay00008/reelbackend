@@ -60,6 +60,25 @@ const UserSchema = new mongoose.Schema({
             ref:'user'
         }
     ],
+    subscription:{
+        type: Boolean,
+        default:false
+    },
+    subscriptionType: {
+        subType: {
+            type:String,
+            default: 'Free'
+        },
+        reelMailCount: {
+            type: Number,
+            default:2
+        },
+        artCount: {
+            type: Number,
+            default:2
+        }
+    },
+
 })
 
 module.exports = User = mongoose.model('user', UserSchema)
