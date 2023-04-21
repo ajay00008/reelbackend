@@ -90,7 +90,7 @@ router.post("/unfollow/:id", auth, async (req, res) => {
 
 //Update User Details
 router.post('/update', auth, async (req, res) => {
-  const { firstName, lastName, description, media } = req.body
+  const { firstName, lastName, description, media, subscription, subType } = req.body
   try {
     var user = await User.findById(req.user.id);
     if (!user) {
@@ -100,6 +100,8 @@ router.post('/update', auth, async (req, res) => {
     user.lastName = lastName ? lastName : user.lastName;
     user.description = description ? description : user.description;
     user.media = media ? media : user.media;
+    user.subscription = subscription ? subscription : user?.subscription
+    user.subscriptionType.subType = subType ? subType : user?.subscriptionType?.subType
     await user.save();
     return res.json({ msg: "User Updated", user });
 
