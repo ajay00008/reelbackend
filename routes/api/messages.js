@@ -19,12 +19,14 @@ router.get("/:id", auth, async (req, res) => {
   try {
     var messages = await Message.find({ roomId: req.params.id })
       .sort({ date: -1 })
+      .populate("reciever")
       .populate("sender");
 
     var newMessages = messages.map((val) => {
       return {
         _id: val._id,
         user: val.sender,
+        reciver: val.reciever,
         createdAt: val.date,
         text: val.message,
         image: val.image ? val.image : undefined,
@@ -42,6 +44,11 @@ router.get("/:id", auth, async (req, res) => {
           _id: user.user._id,
           name: user.user.username,
           avatar: `${user.user.media}`,
+        },
+        reciever: {
+          _id: user?.reciver?._id,
+          name:user?.reciver?.username,
+          avatar:user?.reciver?.media
         },
         createdAt: user.createdAt,
         text: user.text,

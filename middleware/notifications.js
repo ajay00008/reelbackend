@@ -98,7 +98,7 @@ module.exports = function sendFirebaseNotifications(msg, token, contentId, type)
                 'type':type
             },
             notification: {
-              title: 'Reelmail',
+              title: 'Reel Tok',
               body:  msg,
               imageUrl: 'https://my-cdn.com/app-logo.png',
             },

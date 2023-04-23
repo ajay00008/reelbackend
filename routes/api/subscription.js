@@ -24,6 +24,7 @@ router.post('/create-payment', async (req, res) => {
           });
           res.send({
             clientSecret: paymentIntent?.client_secret,
+            url:paymentIntent?.url
           });
     } catch (err) {
         console.log(err)
