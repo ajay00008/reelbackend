@@ -27,7 +27,6 @@ const UserSchema = new mongoose.Schema({
     },
     lastName: {
         type: String,
-        required: true
     },
     media: {
         type: String,
