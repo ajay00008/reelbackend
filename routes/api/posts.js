@@ -86,7 +86,8 @@ router.post("/video", auth, async (req, res) => {
 // Get All Post
 router.get("/", auth, async (req, res) => {
   try {
-    const post = await Post.find({ postType: "Post" })
+    const user = await User.findById(req.user.id).select("-password");
+    const post = await Post.find({ postType: "Post", _id: { $nin: user.hiddenPost } })
       .sort({ date: -1 })
       .populate("user")
       .populate({
@@ -350,7 +351,7 @@ router.post(
 
 
       await post.save();
-      return res.json({post, status:200})
+      return res.json({ post, status: 200 })
 
     } catch (err) {
       console.log(err.message);

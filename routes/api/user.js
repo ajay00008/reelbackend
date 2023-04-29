@@ -10,6 +10,7 @@ const sendFirebaseNotifications = require("../../middleware/notifications");
 const upload = require("../../middleware/localStorage");
 const Notification = require("../../models/Notification");
 const { Configuration, OpenAIApi } = require("openai");
+const Posts = require("../../models/Posts");
 const configuration = new Configuration({
   apiKey: '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',
 });
@@ -151,6 +152,41 @@ router.post('/image/generate', auth, async (req, res) => {
     res.status(500).send("Server Error")
   }
 })
+
+//Update User Details
+router.post('/block-post', auth, async (req, res) => {
+  const { postId } = req.body
+  try {
+    var user = await User.findById(req.user.id);
+    if (!user) {
+      return res.json({ msg: 'No User Found' })
+    }
+    user.hiddenPost.push(postId)
+    await user.save();
+    return res.json({ msg: "User Updated", user });
+  } catch (err) {
+    console.log(err)
+    res.status(500).send("Server Error")
+  }
+})
+
+
+router.delete("/delete", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    await user.deleteOne();
+    await Posts.deleteMany({
+      user:req.user.id
+    })
+    return res.json({ msg: "User Deleted", status: 200 });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+
+
 
 
 module.exports = router;
