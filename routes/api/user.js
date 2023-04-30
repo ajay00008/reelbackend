@@ -176,9 +176,26 @@ router.delete("/delete", auth, async (req, res) => {
     const user = await User.findById(req.user.id);
     await user.deleteOne();
     await Posts.deleteMany({
-      user:req.user.id
+      user: req.user.id
     })
     return res.json({ msg: "User Deleted", status: 200 });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+router.post("/report-user/:id", auth, async (req, res) => {
+  try {
+    const { reason } = req.body
+    const user = await User.findById(req.params.id);
+    sendFirebaseNotifications(
+      `You have been reported due to ${reason}. Your account will remain active for now but too many reports can cause suspension or deletion`,
+      user.fcmToken,
+      user?._id.toString(),
+      "profile"
+    );
+    return res.json({ msg: "User Reported", status: 200 });
   } catch (err) {
     console.log(err.message);
     res.status(500).send("Server Error");
