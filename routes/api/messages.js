@@ -94,6 +94,11 @@ router.post("/", auth, async (req, res) => {
         "chat"
       );
     }
+    if(reel) {
+      let user = await User.findById(req.user.id).select("-password");
+      user.subscriptionType.reelCoin = user.subscriptionType.reelCoin - 0.25
+      await user.save()
+    }
 
     return res.json({ newMessage, status: 200 });
   } catch (err) {

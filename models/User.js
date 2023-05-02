@@ -66,14 +66,18 @@ const UserSchema = new mongoose.Schema({
     subscriptionType: {
         subType: {
             type:String,
-            default: 'Free'
+            default: 'Trial'
         },
         reelMailCount: {
             type: Number,
-            default:2
+            default:0
         },
         artCount: {
             type: Number,
+            default:0
+        },
+        reelCoin: {
+            type:Number,
             default:2
         }
     },
