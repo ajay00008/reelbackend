@@ -68,6 +68,7 @@ router.post('/coins', auth, async (req, res) => {
 })
 
 router.post('/payment-sheet', async (req, res) => {
+  const {price} = req.body
   // Use an existing Customer ID if this is a returning customer.
   const customer = await stripe.customers.create();
   const ephemeralKey = await stripe.ephemeralKeys.create(
@@ -75,8 +76,8 @@ router.post('/payment-sheet', async (req, res) => {
     {apiVersion: '2022-11-15'}
   );
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: 1099,
-    currency: 'eur',
+    amount: price * 100,
+    currency: 'USD',
     customer: customer.id,
     automatic_payment_methods: {
       enabled: true,
