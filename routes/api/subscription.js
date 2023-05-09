@@ -42,7 +42,7 @@ router.post('/subscribe', auth, async (req, res) => {
       user.subscriptionType.reelCoin = 20
       await user.save()
       res.json({ user, msg: "User Subscription Added", status: 200 });
-    } else if (package == 'BUY') {
+    } else if (package == 'COINS') {
       user.subscriptionType.subType = 'BUY'
       user.subscriptionType.reelCoin = 20
       await user.save()
@@ -66,6 +66,30 @@ router.post('/coins', auth, async (req, res) => {
     res.status(500).send("Server error");
   }
 })
+
+router.post('/payment-sheet', async (req, res) => {
+  // Use an existing Customer ID if this is a returning customer.
+  const customer = await stripe.customers.create();
+  const ephemeralKey = await stripe.ephemeralKeys.create(
+    {customer: customer.id},
+    {apiVersion: '2022-11-15'}
+  );
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: 1099,
+    currency: 'eur',
+    customer: customer.id,
+    automatic_payment_methods: {
+      enabled: true,
+    },
+  });
+
+  res.json({
+    paymentIntent: paymentIntent.client_secret,
+    ephemeralKey: ephemeralKey.secret,
+    customer: customer.id,
+    publishableKey: 'pk_test_qblFNYngBkEdjEZ16jxxoWSM'
+  });
+});
 
 
 
