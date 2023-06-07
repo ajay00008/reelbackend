@@ -10,13 +10,14 @@ const ffmpeg = require("fluent-ffmpeg");
 ffmpeg.setFfmpegPath(ffmpegPath);
 const fs = require("fs");
 const sendFirebaseNotifications = require("../../middleware/notifications");
+const sendMultipleNotifications = require("../../middleware/notifications");
 const Notification = require("../../models/Notification");
 
 // Create Post
 router.post("/", auth, async (req, res) => {
   const { text, postType, location, media, mimeType } = req.body;
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user.id).select("-password").populate('followers');
     const newPost = new Post({
       text: text,
       user: req.user.id,
@@ -26,6 +27,16 @@ router.post("/", auth, async (req, res) => {
       mimeType: mimeType,
     });
     const post = await newPost.save();
+    var fcmTokens = user.followers?.map(val => {
+      return val.fcmToken
+    })
+    sendMultipleNotifications(
+      `${user.firstName} Posted Just Now`,
+      fcmTokens,
+      post?._id.toString(),
+      "post"
+    );
+
     return res.json({ post, status: 200 });
   } catch (err) {
     console.log(err.message);

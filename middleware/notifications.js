@@ -109,3 +109,24 @@ module.exports = function sendFirebaseNotifications(msg, token, contentId, type)
     }
     
 }
+
+module.exports = async function sendMultipleNotifications(msg, tokens, contentId, type) {
+    try {
+      const messages = tokens.map((token) => ({
+        data: {
+          contentId: contentId,
+          type: type
+        },
+        notification: {
+          title: 'Reel Tok',
+          body: msg,
+          imageUrl: 'https://my-cdn.com/app-logo.png',
+        },
+        token: token
+      }));
+  
+      await admin.messaging().sendAll(messages);
+    } catch (err) {
+      console.log(err);
+    }
+};

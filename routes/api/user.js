@@ -148,6 +148,8 @@ router.post('/image/generate', auth, async (req, res) => {
     var image_url = response.data.data[0].url;
     const user = await User.findById(req.user.id).select("-password");
     user.subscriptionType.reelCoin = user.subscriptionType.reelCoin - 0.25
+    console.log(user,'USER')
+    await user.save()
     return res.json({ msg: 'IMAGE', image_url })
   } catch (err) {
     console.log(err)
