@@ -226,6 +226,22 @@ router.post('/art', async(req,res) => {
   }
 })
 
+router.post('/art/generate', async (req, res) => {
+  try {
+    const { text } = req.body;
+    const response = await openai.createImage({
+      prompt: text,
+      n: 1,
+      size: "512x512",
+    });
+    var image_url = response.data.data[0].url;
+    return res.json({ msg: 'IMAGE', image_url })
+  } catch (err) {
+    console.log(err)
+    res.status(500).send("Server Error")
+  }
+})
+
 
 
 
