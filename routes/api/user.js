@@ -11,6 +11,7 @@ const upload = require("../../middleware/localStorage");
 const Notification = require("../../models/Notification");
 const { Configuration, OpenAIApi } = require("openai");
 const Posts = require("../../models/Posts");
+const Art = require("../../models/Art");
 const configuration = new Configuration({
   apiKey: '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',
 });
@@ -205,6 +206,25 @@ router.post("/report-user/:id", auth, async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
+
+router.post('/art', async(req,res) => {
+  try{
+    const { email } = req.body
+    const user = await Art.findOne({email:email})
+    if(user){
+      return res.json({msg:'User has already used Art Generator', userExist:true})
+    } else {
+      var newData = new Art({
+        email:email
+      })
+      await newData.save()
+      return res.json({msg:'User Registered', userExist:false})
+    }
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+})
 
 
 
