@@ -1,5 +1,8 @@
 {
     "mongoURI": "mongodb+srv://vinay:vinay.123@cluster0.wkur5wm.mongodb.net/test",
-    "jwtSecret" : "mysecrettoken"
+    "jwtSecret" : "mysecrettoken",
+    "user": "info@reeltok.net",
+    "pass": "info@@@563N",
+    "forgotSecret": "forgotSecret"
 }
 

@@ -8,9 +8,11 @@ const sendFirebaseNotifications = require("./middleware/notifications");
 var cors = require("cors");
 const Message = require("./models/Message");
 const User = require("./models/User");
+const { mailConnected } = require("./service/nodemailer");
 const app = express();
 
 connectDB();
+mailConnected();
 
 const PORT = process.env.PORT || 5000;
 
@@ -37,7 +39,7 @@ app.use('media/video', express.static('image'));
 
 
 app.get("/", (req, res) => {
-  res.send("API Running");
+  res.send("API Runnin successfully");
 });
 
 app.get("/media/image/:name", (req, res) => {

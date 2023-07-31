@@ -129,9 +129,9 @@ router.get("/user/:id", auth, async (req, res) => {
 
 // Get All Post
 router.get("/story", auth, async (req, res) => {
+  console.log(req.user)
   try {
-    const post = await Post.find({ postType: "Story" })
-      .sort({ date: -1 })
+    const post = await Post.find({ postType: "Story" }).sort({ date: -1 })
       .populate("user");
     var totalRecords = [];
     var j = 0;
@@ -176,6 +176,78 @@ router.get("/story", auth, async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
+
+
+router.get("/stories", auth, async (req, res) => {
+  try {
+    // const userId = req.user.id; 
+    const userId = '64be6fa6e396e3a8bc81855d'
+
+    const allStories = await Post.find({ postType: "Story" }).sort({ date: -1 }).populate("user");
+
+    const otherUserStories = allStories.filter((story) => story.user._id.toString() !== userId);
+
+    var totalRecords = [];
+    var j = 0;
+    for (i = 0; i < otherUserStories.length; i++) {
+      console.log(totalRecords,"kkkkkk", i)
+      var index = totalRecords.findIndex((x) => x?.user_id == otherUserStories[i].user._id.toString());
+
+      if (index > -1) {
+        var story_id = otherUserStories[i]._id;
+        var story_image = `${otherUserStories[i].media}`;
+        var newStory = {
+          story_id,
+          story_image,
+        };
+        totalRecords[index].stories.push(newStory);
+      } else {
+        var user_id = otherUserStories[i].user._id.toString();
+        var user_name = otherUserStories[i].user.username;
+        var user_image = otherUserStories[i].user.media
+          ? `${otherUserStories[i].user.media}`
+          : "https://t4.ftcdn.net/jpg/03/59/58/91/360_F_359589186_JDLl8dIWoBNf1iqEkHxhUeeOulx0wOC5.jpg";
+        var story_id = otherUserStories[i]._id;
+        var story_image = `${otherUserStories[i].media}`;
+        var newStory = {
+          story_id,
+          story_image,
+        };
+        var newObj = {
+          user_id,
+          user_name,
+          user_image,
+          stories: [newStory],
+        };
+        totalRecords[j++] = newObj;
+      }
+    }
+
+    // Get stories of the login user
+    const userStories = await Post.find({ user: userId, postType: "Story" }).sort({ date: -1 }).select("_id media");
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const userData = {
+      user_id: user._id,
+      user_name: user.username,
+      user_image: user.media
+        ? `${user.media}`
+        : "https://t4.ftcdn.net/jpg/03/59/58/91/360_F_359589186_JDLl8dIWoBNf1iqEkHxhUeeOulx0wOC5.jpg",
+      stories: userStories,
+    };
+
+    return res.json({  user_data: userData, otherStories : totalRecords, status: 200 });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+
 
 // Get Post By Id
 router.get("/:id", auth, async (req, res) => {
