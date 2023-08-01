@@ -1,3 +1,3 @@
 #!/bin/bash
-cd /home/ec2-user/workspace/reelmail-backend/
+cd /home/ec2-user/workspace/reel-test/
 yum update -y
