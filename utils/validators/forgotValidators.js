@@ -11,12 +11,12 @@ const otpValidator = [
     check("password", "Password is required").notEmpty(),
     check("password", "Password must be at least 6 characters long").isLength({ min: 6 }),
     check("password", "Password must contain at least one digit").matches(/\d/),
-    check("password", "Password must contain at least one capital letter").matches(/[A-Z]/),
-    check("password", "Password must contain at least one special character").matches(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/),
+    // check("password", "Password must contain at least one capital letter").matches(/[A-Z]/),
+    // check("password", "Password must contain at least one special character").matches(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/),
     check("confirmpassword", "Confirm Password is required").notEmpty(),
     check("password").custom((value, { req }) => {
       if (value !== req.body.confirmpassword) {
-        throw new Error("Passwords do not match");
+        throw new Error("password and confirm password should be same");
       }
       return true;
     }),

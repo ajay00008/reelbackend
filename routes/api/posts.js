@@ -180,9 +180,8 @@ router.get("/story", auth, async (req, res) => {
 
 router.get("/stories", auth, async (req, res) => {
   try {
-    // const userId = req.user.id; 
-    const userId = '64be6fa6e396e3a8bc81855d'
-
+    const userId = req.user.id; 
+    // const userId = '64be6fa6e396e3a8bc81855d'
     const allStories = await Post.find({ postType: "Story" }).sort({ date: -1 }).populate("user");
 
     const otherUserStories = allStories.filter((story) => story.user._id.toString() !== userId);
