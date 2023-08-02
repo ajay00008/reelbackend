@@ -11,6 +11,10 @@ const UserSchema = new mongoose.Schema({
         required:true,
         unqiue:true
     },
+    phone:{
+        type:Number,
+        unique:true
+    },
     password: {
         type: String,
         required: true,
@@ -40,6 +44,15 @@ const UserSchema = new mongoose.Schema({
     isFirstTime: {
         type: Boolean,
         default:false
+    },
+    profileType:{
+        type:String,
+        enum: ["personal","business"],
+        default:"personal"
+    },
+    category:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'categories'
     },
     categories: [
         {

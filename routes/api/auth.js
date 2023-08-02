@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../../middleware/auth");
 const User = require("../../models/User");
-const { check, validationResult } = require("express-validator");
+const { check, validationResult, body } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("config");
@@ -22,6 +22,8 @@ const {
   passwordMatcherValidator,
 } = require("../../utils/validators/forgotValidators");
 const Message = require("../../models/Message");
+const { signupValidator, loginValidator } = require("../../utils/validators/loginValidator");
+const Categories = require("../../models/Categories");
 const multerMemoryStorage = multer.memoryStorage();
 const multerUploadInMemory = multer({
   storage: multerMemoryStorage,
@@ -36,6 +38,16 @@ aws.config.update({
 });
 
 const S3 = new aws.S3({});
+
+router.get("/categories", async (req, res) => {
+  try {
+    const categories = await Categories.find({})
+    res.status(200).json({categories})
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Errro");
+  }
+});
 
 // GET USER
 router.get("/", auth, async (req, res) => {
@@ -110,8 +122,8 @@ router.get("/chats", async (req, res) => {
 
 router.get("/userchats", async (req, res) => {
   const { limit = 10, page = 1 } = req.query;
- const skip = (page - 1) * limit 
- console.log(limit , page , skip)
+  const skip = (page - 1) * limit;
+  console.log(limit, page, skip);
   try {
     const loggedInUserId = "64c6699fe396e3a8bc81da4c";
     // const loggedInUserId = '64c56f0ee396e3a8bc81d29d';
@@ -226,7 +238,7 @@ router.get("/userchats", async (req, res) => {
       },
     ];
     const [{ chats, totalCount }] = await Message.aggregate(aggregate);
-    res.status(200).json({ chats ,  totalCount : totalCount?.count || 0   });
+    res.status(200).json({ chats, totalCount: totalCount?.count || 0 });
   } catch (err) {
     console.log(err.message);
     res.status(500).send("Server Error");
@@ -234,22 +246,17 @@ router.get("/userchats", async (req, res) => {
 });
 
 // LOGIN
-router.post("/login", async (req, res) => {
+router.post("/login", loginValidator , async (req, res) => {
   const { email, password } = req.body;
   try {
     let user = await User.findOne({ email });
     if (!user) {
-      return res
-        .status(400)
-        .json({ errors: [{ msg: "Invalid email or password" }] });
+      return res.status(400).json({ errors: [{ msg: "Invalid email or password" }] });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-
     if (!isMatch) {
-      return res
-        .status(400)
-        .json({ errors: [{ msg: "Invalid email or password" }] });
+      return res.status(400).json({ errors: [{ msg: "Invalid email or password" }] });
     }
     const payLoad = {
       user: {
@@ -264,12 +271,12 @@ router.post("/login", async (req, res) => {
         if (err) {
           throw err;
         }
-        res.json({ token, status: 200, user });
+        res.json({ token, status: 200, user  , success: true });
       }
     );
   } catch (err) {
     console.log(err.message);
-    res.status(500).send("Server error");
+    res.status(500).json({message : "Server error" , success : false});
   }
 });
 
@@ -339,6 +346,82 @@ router.post(
     }
   }
 );
+
+router.post("/signup", signupValidator, async (req, res) => {
+  console.log(req?.body, "bodyyyyyyy");
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.errors[0].msg });
+  }
+  const {
+    email,
+    password,
+    firstName,
+    lastName,
+    username,
+    profileType,
+    phone,
+    category
+  } = req.body;
+
+  try {
+    const userCount = await User.find().count();
+    let user = await User.findOne({ email });
+    let checkUsername = await User.findOne({ username });
+    console.log(user, checkUsername);
+
+    if (user) {
+      return res.status(400).json({ errors: [{ msg: "User already exists" }] });
+    } else if (checkUsername) {
+      return res.status(400).json({ errors: [{ msg: "Username already exists" }] });
+    }
+    let newUser;
+    if (profileType === "personal") {
+      newUser = new User({
+        email,
+        password,
+        firstName,
+        lastName,
+        username,
+        profile_no: userCount + 1,
+      });
+    } else {
+      newUser = new User({
+        phone,
+        category,
+        firstName,
+        username,
+        email,
+        profile_no: userCount + 1,
+      });
+    }
+    const salt = await bcrypt.genSalt(10);
+    newUser.password = await bcrypt.hash(password, salt);
+    await newUser.save();
+
+    const payLoad = {
+      user: {
+        id: newUser.id,
+      },
+    };
+    jwt.sign(
+      payLoad,
+      "mysecrettoken",
+      { expiresIn: 36000000 },
+      (err, token) => {
+        if (err) {
+          throw err;
+        }
+        res.json({ token, status: 200, msg: "User Registered", user: newUser, success: true });
+      }
+    );
+    return res.json({ message: "success", success: true  , newUser});
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: "Server error", success: false });
+  }
+});
+
 
 //Update Device Token
 router.post("/update-token", auth, async (req, res) => {
@@ -433,7 +516,11 @@ router.post("/forgot", emailValidator, async (req, res) => {
     if (!user) {
       return res
         .status(404)
-        .json({ message: "no account register with this email address" });
+        .json({
+          message: "no account register with this email address",
+          status: 404,
+          success: false,
+        });
     }
 
     const { otp, hashedOTP, expirationTime } = await generateAndHashOTP();
@@ -444,7 +531,7 @@ router.post("/forgot", emailValidator, async (req, res) => {
       html: `<div style="text-align: center;">
               <p style="color:black">To reset your  password, please use the following One-Time Password (OTP):</p>
               <h3 style="color: red;">${otp}</h1>
-            </div>`,
+       1     </div>`,
     };
     const newMail = await sendMail(mailData);
     if (!newMail) {
@@ -464,7 +551,9 @@ router.post("/forgot", emailValidator, async (req, res) => {
       message: `Otp sent to your email address ${email} please check your inbox`,
     });
   } catch (error) {
-    return res.status(422).json({ message: error, success: false });
+    return res
+      .status(422)
+      .json({ message: error, success: false, status: 422 });
   }
 });
 
@@ -481,7 +570,10 @@ router.post("/verifyotp", otpValidator, async (req, res) => {
     if (!otpData || currentTime > otpData.expiresAt) {
       return res
         .status(401)
-        .json({ message: "OTP has expired please request new otp" });
+        .json({
+          message: "OTP has expired please request new otp",
+          success: false,
+        });
     }
 
     const otpMatch = await verifyOTP(otp, otpData.otp);
@@ -496,10 +588,16 @@ router.post("/verifyotp", otpValidator, async (req, res) => {
     const token = await createJwtToken(payload);
     return res
       .status(200)
-      .json({ message: "OTP verification successful", forgotToken: token });
+      .json({
+        message: "OTP verification successful",
+        forgotToken: token,
+        success: true,
+      });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Server error", error });
+    return res
+      .status(500)
+      .json({ message: "Server error", error, success: false });
   }
 });
 
@@ -509,7 +607,9 @@ router.post("/reset", passwordMatcherValidator, async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors?.errors[0].msg });
+    return res
+      .status(400)
+      .json({ errors: errors?.errors[0].msg, success: false });
   }
 
   try {
@@ -536,12 +636,16 @@ router.post("/reset", passwordMatcherValidator, async (req, res) => {
 
     await userInfo.save();
     await Otp.deleteOne({ email: user?.email });
-    return res.status(200).json({ message: "Password updated successfully" });
+    return res
+      .status(200)
+      .json({ message: "Password updated successfully", success: true });
   } catch (error) {
     if (error.message === "Token has expired") {
-      return res.status(401).json({ message: "Token has expired" });
+      return res
+        .status(401)
+        .json({ message: "Token has expired", success: false });
     } else {
-      return res.status(403).json({ error: error?.message });
+      return res.status(403).json({ error: error?.message, success: false });
     }
   }
 });
