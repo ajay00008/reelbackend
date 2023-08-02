@@ -16,6 +16,7 @@ const {
   createJwtToken,
   verifyToken,
   sendMail,
+  emailVerify
 } = require("../../utils/mailer");
 const {
   otpValidator,
@@ -123,14 +124,19 @@ router.get("/chats", async (req, res) => {
 
 
 // LOGIN
-router.post("/login", loginValidator , async (req, res) => {
+router.post("/login" , async (req, res) => {
   const { email, password } = req.body;
   try {
-    let user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ errors: [{ msg: "Invalid email or password" }] });
+    const user = await User.findOne({ $or: [{ email }, { username : email }] });   
+
+    if (!user ) {
+      return res.status(400).json({ errors: { msg: "Invalid email or username"  , success:false} });
     }
 
+    // if(user.isVerified===false){
+    //   return res.status(422).message({message:'please verified your email address', success:false })
+    // }
+    
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ errors: [{ msg: "Invalid email or password" }] });
@@ -224,8 +230,8 @@ router.post(
   }
 );
 
-router.post("/signup", signupValidator, async (req, res) => {
-  console.log(req?.body, "bodyyyyyyy");
+
+router.post("/signup", signupValidator ,  async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.errors[0].msg });
@@ -246,9 +252,9 @@ router.post("/signup", signupValidator, async (req, res) => {
     let user = await User.findOne({ email });
     let checkUsername = await User.findOne({ username });
     console.log(user, checkUsername);
-
+    
     if (user) {
-      return res.status(400).json({ errors: [{ msg: "User already exists" }] });
+      return res.status(400).json({ errors: [{ msg: "User email already exists" }] });
     } else if (checkUsername) {
       return res.status(400).json({ errors: [{ msg: "Username already exists" }] });
     }
@@ -275,30 +281,68 @@ router.post("/signup", signupValidator, async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     newUser.password = await bcrypt.hash(password, salt);
     await newUser.save();
-
-    const payLoad = {
-      user: {
-        id: newUser.id,
-      },
-    };
-    jwt.sign(
-      payLoad,
-      "mysecrettoken",
-      { expiresIn: 36000000 },
-      (err, token) => {
-        if (err) {
-          throw err;
-        }
-        res.json({ token, status: 200, msg: "User Registered", user: newUser, success: true });
-      }
-    );
-    return res.json({ message: "success", success: true  , newUser});
+    const {success , message , otp , expiresAt} = await emailVerify(email)
+    if(success!==true){
+    res.status(500).json({ message: "Server error", success: false });     
+    }
+   const data =  await Otp.updateOne({ email },
+      { $set: { otp , expiresAt} },
+      { upsert: true }
+    ).catch(err=>{console.log(err , 'in adding otp in db')}); 
+    console.log(success ,message)
+    return res.status(!success ? 422 : 201).json({ message: "user registered successfully", success: true , newUser});
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ message: "Server error", success: false });
   }
 });
 
+
+
+
+router.post('/verifyemail', async (req , res)=>{
+  const {email} = req.body
+  if(!email){
+    return res.status(422).json({message:"email is required"})
+  }
+  try {
+    const {success , message} = await emailVerify(email)
+    return res.status(!success ? 422 : 201).json({ message: "user registered successfully", success ,  message});    
+  } catch (error) {
+    res.status(500).json({ message: "Server error", success: false });    
+  }
+})
+
+router.post('/emailotpverify', otpValidator , async (req , res)=>{
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.errors[0].msg });
+  }
+  const { otp, email } = req.body;
+  try {
+    const otpData = await Otp.findOne({ email });
+    const currentTime = new Date();
+    if (!otpData || currentTime > otpData.expiresAt) {
+      return res.status(401).json({
+          message: "OTP has expired please request new otp",
+          success: false,
+        });
+    }   
+    const otpMatch = await verifyOTP(otp, otpData.otp);
+    if (!otpMatch) {
+      return res.status(401).json({ message: "Invalid OTP" });
+    }
+    const user = await User.findOne({
+      email: { $regex: new RegExp(email, "i") },
+    });
+    user.isVerified = true
+    const resp  =await user.save()
+    await Otp.deleteOne({ email});
+    return res.status(200).json({ message: "user email verified successfully", success : true });    
+  } catch (error) {
+    res.status(500).json({ message: "Server error", success: false });    
+  }
+})
 
 //Update Device Token
 router.post("/update-token", auth, async (req, res) => {
@@ -391,8 +435,7 @@ router.post("/forgot", emailValidator, async (req, res) => {
     });
 
     if (!user) {
-      return res
-        .status(404)
+      return res.status(404)
         .json({
           message: "no account register with this email address",
           status: 404,
@@ -408,7 +451,7 @@ router.post("/forgot", emailValidator, async (req, res) => {
       html: `<div style="text-align: center;">
               <p style="color:black">To reset your  password, please use the following One-Time Password (OTP):</p>
               <h3 style="color: red;">${otp}</h1>
-       1     </div>`,
+     </div>`,
     };
     const newMail = await sendMail(mailData);
     if (!newMail) {
@@ -434,6 +477,8 @@ router.post("/forgot", emailValidator, async (req, res) => {
   }
 });
 
+
+
 router.post("/verifyotp", otpValidator, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -442,17 +487,14 @@ router.post("/verifyotp", otpValidator, async (req, res) => {
   const { otp, email } = req.body;
   try {
     const otpData = await Otp.findOne({ email });
-    console.log(otpData, "jjj");
+
     const currentTime = new Date();
     if (!otpData || currentTime > otpData.expiresAt) {
-      return res
-        .status(401)
-        .json({
+      return res.status(401).json({
           message: "OTP has expired please request new otp",
           success: false,
         });
-    }
-
+    }   
     const otpMatch = await verifyOTP(otp, otpData.otp);
     if (!otpMatch) {
       return res.status(401).json({ message: "Invalid OTP" });
@@ -463,13 +505,11 @@ router.post("/verifyotp", otpValidator, async (req, res) => {
       },
     };
     const token = await createJwtToken(payload);
-    return res
-      .status(200)
-      .json({
+    return res.status(200).json({
         message: "OTP verification successful",
         forgotToken: token,
         success: true,
-      });
+      });      
   } catch (error) {
     console.error(error);
     return res

@@ -181,7 +181,6 @@ router.get("/story", auth, async (req, res) => {
 router.get("/stories", auth, async (req, res) => {
   try {
     const userId = req.user.id; 
-    // const userId = '64be6fa6e396e3a8bc81855d'
     const allStories = await Post.find({ postType: "Story" }).sort({ date: -1 }).populate("user");
 
     const otherUserStories = allStories.filter((story) => story.user._id.toString() !== userId);
@@ -239,10 +238,10 @@ router.get("/stories", auth, async (req, res) => {
       stories: userStories,
     };
 
-    return res.json({  user_data: userData, otherStories : totalRecords, status: 200 });
+    return res.json({  user_data: userData, otherStories : totalRecords });
   } catch (err) {
-    console.log(err.message);
-    res.status(500).send("Server Error");
+    console.log(err.message , "fetching stories");
+    res.status(500).send({message : "Server Error" , success : false });
   }
 });
 

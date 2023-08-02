@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
 const config = require('config');
 const { transporter } = require('../service/nodemailer');
+const Otp = require("../models/otp");
 
 const useremail = config.get('user');
 const secretKey = config.get('forgotSecret');
@@ -17,7 +18,7 @@ const sendMail = async ({ to, subject, html }) => {
     html,
   };
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await transporter?.sendMail(mailOptions);
     console.log("Email sent:", info);
     return true; // Indicate that the email was sent successfully
   } catch (error) {
@@ -65,6 +66,33 @@ const verifyToken = (token)  => {
   });
 }
 
+const emailVerify =  async (email) => {
+  try {
+    const { otp, hashedOTP, expirationTime } = await generateAndHashOTP();
+
+    const mailData = {
+      to: email,
+      subject:"OTP verification",
+      html: `<div style="text-align: center;">
+              <p style="color:black">To verify your email, please use the following One-Time Password (OTP):</p>
+              <h3 style="color: green;">${otp}</h1>
+             </div>`,
+    };
+    const newMail = await sendMail(mailData);
+    if (!newMail) {
+      return ({ success: false, message: "email not sent" });
+    }
+    return ({
+      success: true,
+      message: `Otp sent to your register email address ${email} please check your inbox`,
+      otp:hashedOTP,
+      expiresAt : expirationTime
+    })
+  } catch (error) {
+    throw new Error({message:"server issue" , success:false})
+  }
+};
+
 
 
 module.exports = {
@@ -72,5 +100,6 @@ module.exports = {
     generateAndHashOTP,
     verifyOTP,
     createJwtToken,
-    verifyToken
+    verifyToken,
+    emailVerify
 }

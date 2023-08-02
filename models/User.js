@@ -101,8 +101,11 @@ const UserSchema = new mongoose.Schema({
                 ref: 'post'
             }
         }
-    ]
-
+    ],
+    isVerified:{
+        type:Boolean,
+        // default:false
+    }
 })
 
 module.exports = User = mongoose.model('user', UserSchema)

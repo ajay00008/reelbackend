@@ -14,5 +14,7 @@ const otpSchema = new Schema({
     timestamps:true,
     versionKey:false
 })
+otpSchema.index({ email: 1 }, { unique: true });
+
 
 module.exports = Otp = model('otp',otpSchema)
