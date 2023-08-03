@@ -141,7 +141,7 @@ const router = Router();
     try {
       // const loggedInUserId = '64c56f0ee396e3a8bc81d29d';
       // const loggedInUserId = "64c6699fe396e3a8bc81da4c";
-      const loggedInUserId = req.user.id;
+      const loggedInUserId = req.user.id
   
       const messages = await Message.find({
         $or: [{ sender: loggedInUserId }, { reciever: loggedInUserId }],
@@ -170,8 +170,8 @@ const router = Router();
   
           return {
             room_id: roomId,
-            otherUserId: otherUserId,
-            otherUserName: otherUserName,
+            userId: otherUserId,
+            userName: otherUserName,
             lastmessageDetails: messages[0],
           };
         }
