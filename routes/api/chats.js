@@ -137,10 +137,11 @@ const router = Router();
   
 
 
-  router.get("/", async (req, res) => {
+  router.get("/", auth , async (req, res) => {
     try {
       // const loggedInUserId = '64c56f0ee396e3a8bc81d29d';
-      const loggedInUserId = "64c6699fe396e3a8bc81da4c";
+      // const loggedInUserId = "64c6699fe396e3a8bc81da4c";
+      const loggedInUserId = req.user.id;
   
       const messages = await Message.find({
         $or: [{ sender: loggedInUserId }, { reciever: loggedInUserId }],
