@@ -266,11 +266,13 @@ router.post("/signup", signupValidator ,  async (req, res) => {
         firstName,
         lastName,
         username,
+        profileType,
         profile_no: userCount + 1,
       });
     } else {
       newUser = new User({
         phone,
+        profileType,
         category,
         firstName,
         username,
