@@ -6,14 +6,14 @@ const Message = require('../../models/Message');
 const router = Router();
 let dummy = `https://png.pngitem.com/pimgs/s/35-350426_profile-icon-png-default-profile-picture-png-transparent.png`
 function processChatEntry(chat, loggedInUserId) {
-  const { _id, message } = chat;
+  const { _id , message } = chat;
   const room_id = message.roomId;
   const userId = message.sender._id.toString() === loggedInUserId ? message.reciever._id : message.sender._id;
   const userName = message.sender._id.toString() === loggedInUserId ? message.receiverinfo[0]?.username : message.senderinfo[0]?.username;
   const media = message.sender._id.toString() === loggedInUserId ? message.receiverinfo[0]?.media || dummy : message.senderinfo[0]?.media || dummy;
 
   const lastmessageDetails = {
-    _id: message._id,
+    _id: message._id || _id,
     sender: {
       id : message.sender,
       username: message.senderinfo[0]?.username || ''
@@ -30,7 +30,6 @@ function processChatEntry(chat, loggedInUserId) {
     date: message.date,
     __v: message.__v,
   };
-  console.log(media)
   return { room_id, userId, userName, media , lastmessageDetails };
 }
 
@@ -40,8 +39,8 @@ router.get("/",  auth , async (req, res) => {
     const skip = (page - 1) * limit;
     console.log(limit, page, skip , req.user);
     try {
-    // const loggedInUserId = req.user.id;
-          const loggedInUserId = '64c56f0ee396e3a8bc81d29d';
+    const loggedInUserId = req.user.id;
+          // const loggedInUserId = '64c56f0ee396e3a8bc81d29d';
 
      if(!loggedInUserId){
         return res.status(422).json({message:"please login first"})
