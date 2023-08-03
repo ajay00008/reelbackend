@@ -88,6 +88,7 @@ io.on("connection", (socket) => {
   socket.on('getUsers', () => {
   })
   socket.on('setup', (userData) => {
+    console.log("Sett" , userData)
     socket.join(userData._id)
     socket.emit('connected')
   })
@@ -98,6 +99,7 @@ io.on("connection", (socket) => {
   })
 
   socket.on('new message', async(newMessageRec) => {
+    console.log(newMessageRec ,"newwwmee")
     socket.in(newMessageRec.reciver._id).emit('message recieved', newMessageRec)
     const newMessage = await new Message ({
       roomId:newMessageRec.roomId,
