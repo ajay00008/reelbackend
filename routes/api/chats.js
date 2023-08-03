@@ -6,14 +6,15 @@ const Message = require('../../models/Message');
 const router = Router();
 let dummy = `https://png.pngitem.com/pimgs/s/35-350426_profile-icon-png-default-profile-picture-png-transparent.png`
 function processChatEntry(chat, loggedInUserId) {
-  const { _id , message } = chat;
+  const { message } = chat;
   const room_id = message.roomId;
-  const userId = message.sender._id.toString() === loggedInUserId ? message.reciever._id : message.sender._id;
-  const userName = message.sender._id.toString() === loggedInUserId ? message.receiverinfo[0]?.username : message.senderinfo[0]?.username;
+  const _id = message.sender._id.toString() === loggedInUserId ? message.reciever._id : message.sender._id;
+  const username = message.sender._id.toString() === loggedInUserId ? message.receiverinfo[0]?.username : message.senderinfo[0]?.username;
   const media = message.sender._id.toString() === loggedInUserId ? message.receiverinfo[0]?.media || dummy : message.senderinfo[0]?.media || dummy;
+  const fcmToken = message.sender._id.toString() === loggedInUserId ? message.receiverinfo[0]?.Token || null : message.senderinfo[0]?.fcmToken || null;
 
   const lastmessageDetails = {
-    _id: message._id || _id,
+    _id: message._id ,
     sender: {
       id : message.sender,
       username: message.senderinfo[0]?.username || ''
@@ -30,7 +31,7 @@ function processChatEntry(chat, loggedInUserId) {
     date: message.date,
     __v: message.__v,
   };
-  return { room_id, userId, userName, media , lastmessageDetails };
+  return { room_id, _id, username, media , fcmToken , lastmessageDetails };
 }
 
 
