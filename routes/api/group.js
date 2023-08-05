@@ -49,9 +49,8 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/", groupValidator, async (req, res) => {
-  const image = req.files?.image;
   const loggedInUserId = req.user.id;
-  const { groupName, members, admin } = req.body;
+  const { groupName, members, admin , image} = req.body;
 
   console.log(groupName, members, admin, req.body);
   const errors = validationResult(req);
@@ -79,8 +78,8 @@ router.post("/", groupValidator, async (req, res) => {
 });
 
 router.put("/", async (req, res) => {
-  const image = req.files?.image;
-  const { groupId, groupName, members } = req.body;
+  const { groupId, groupName, members , image } = req.body;
+  console.log(image , groupId)
   const loggedInUserId = req.user.id.toString();
   if(!groupId){
     return res.status(200).json({message:"groupId is required"})
@@ -100,7 +99,7 @@ router.put("/", async (req, res) => {
           success: false,
         });
     }
-    
+
     group.groupName = groupName ? groupName : group.groupName;
     group.members = members ? members : group.members;
     group.image =  image ? image : group.image
