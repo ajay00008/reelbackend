@@ -3,13 +3,18 @@ const connectDB = require("./config/db");
 const fileUpload = require("express-fileupload");
 const path  = require('path')
 const sendFirebaseNotifications = require("./middleware/notifications");
-require('dotenv/config')
+require('dotenv/config');
+
+
+
 
 var cors = require("cors");
 const Message = require("./models/Message");
 const User = require("./models/User");
 const { mailConnected } = require("./service/nodemailer");
+const auth = require("./middleware/auth");
 const app = express();
+
 
 connectDB();
 mailConnected();
@@ -64,6 +69,8 @@ app.use('/api/messages',require('./routes/api/messages'))
 app.use('/api/notifications',require('./routes/api/notifications'))
 app.use('/api/subscription',require('./routes/api/subscription'))
 app.use('/api/chats',require('./routes/api/chats'))
+app.use('/api/groups', auth , require('./routes/api/group'))
+
 
 
 
