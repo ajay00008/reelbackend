@@ -77,18 +77,14 @@ router.put("/", async (req, res) => {
   const image = req.files?.image;
   const { groupId, groupName, members } = req.body;
   const loggedInUserId = req.user.id.toString();
-
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res
-      .status(400)
-      .json({ errors: errors.errors[0].msg, success: false });
+  if(!groupId){
+    return res.status(200).json({message:"groupId is required"})
   }
+  
   try {
     const group = await chatroom.findById({ _id: groupId });
     if (!group) {
-      return res
-        .status(404)
+      return res.status(404)
         .json({ message: "no group found", success: false });
     }
     const { admin } = group;
