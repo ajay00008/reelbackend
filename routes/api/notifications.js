@@ -21,7 +21,7 @@ const getDatesByTimeFrame = require("../../utils/constant");
 // });
 
 
-router.get("/", async (req, res) => {
+router.get("/", auth , async (req, res) => {
   const loggedInUserId = req.user?.id
   const todayDate = new Date();
   const dates = getDatesByTimeFrame(todayDate);
