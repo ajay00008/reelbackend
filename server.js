@@ -155,6 +155,6 @@ io.on("connection", (socket) => {
     console.log(roomId, "rommmmmm", message);
     console.log(rooms, "heee");
     // Broadcast the message to all clients in the room
-    io.to(roomId).emit("chat message", { sender: id, message: message  });
+    io.to(roomId).emit("chat message", { chatroom: roomId, sender: id, message: message  });
   });
 });
