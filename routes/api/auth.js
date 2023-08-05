@@ -315,21 +315,21 @@ router.post("/signup", signupValidator, async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     newUser.password = await bcrypt.hash(password, salt);
     await newUser.save();
-    const { success, message, otp, expiresAt } = await emailVerify(email);
-    if (success !== true) {
-      res.status(500).json({ message: "Server error", success: false });
-    }
-    const data = await Otp.updateOne(
-      { email },
-      { $set: { otp, expiresAt } },
-      { upsert: true }
-    ).catch((err) => {
-      console.log(err, "in adding otp in db");
-    });
+    // const { success, message, otp, expiresAt } = await emailVerify(email);
+    // if (success !== true) {
+    //   res.status(500).json({ message: "Server error", success: false });
+    // }
+    // const data = await Otp.updateOne(
+    //   { email },
+    //   { $set: { otp, expiresAt } },
+    //   { upsert: true }
+    // ).catch((err) => {
+    //   console.log(err, "in adding otp in db");
+    // });
 
     const payLoad = {
       user: {
-        id: user.id,
+        id: newUser.id,
       },
     };
     jwt.sign(
