@@ -61,23 +61,16 @@ router.post("/", groupValidator, async (req, res) => {
       .json({ errors: errors.errors[0].msg, success: false });
   }
   try {
-    let groupImage =
-      "https://www.airscan.org/wp-content/uploads/2023/02/Iconen-website-47-1024x1024.png";
-    if (image) {
-      const data = await uploadImage(image);
-      groupImage = data.Location || "";
-    }
+    let groupImage = "https://www.airscan.org/wp-content/uploads/2023/02/Iconen-website-47-1024x1024.png";
     // const data = await resizeAndUploadImage(image);
     const group = new chatroom({
       groupName,
       admin: loggedInUserId,
       members,
-      image: groupImage,
+      image: image || groupImage,
       isGroup: true,
     });
-
     const data = await group.save();
-
     res.status(201).json({ group: data, success: true });
   } catch (error) {
     console.log(error.message);
@@ -107,15 +100,10 @@ router.put("/", async (req, res) => {
           success: false,
         });
     }
-
+    
     group.groupName = groupName ? groupName : group.groupName;
     group.members = members ? members : group.members;
-    let groupImage = group.image;
-    if (image) {
-      const data = await uploadImage(image);
-      groupImage = data.Location || groupImage;
-    }
-    group.image = groupImage
+    group.image =  image ? image : group.image
     const updateRecords = await group.save();
     res.status(200).json({group: updateRecords, message: "update successfully", success: true});
   } catch (error) {
