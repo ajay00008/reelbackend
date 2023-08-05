@@ -8,11 +8,23 @@ const { groupValidator } = require("../../utils/validators/groupValidator");
 const { validationResult } = require("express-validator");
 
 router.get("/", async (req, res) => {
+  const userId = req.user.id
   try {
-    const totalGroups = await chatroom.countDocuments()
-    const groups = await chatroom.find({}).populate("members", "username media _id fcmToken")
+    const totalGroups = await chatroom.countDocuments({
+      $or: [
+        { admin: userId }, // User is the admin
+        { members: { $in: [userId] } }, // User is in the members array
+      ],
+    })
+    const groups = await chatroom.find({
+      $or: [
+        { admin: userId }, // User is the admin
+        { members: { $in: [userId] } }, // User is in the members array
+      ],
+    }).populate("members", "username media _id fcmToken")
     .populate("admin", "username media _id fcmToken");
-    return res.status(200).json({ groups, totalGroups ,succes:true });
+
+    return res.status(200).json({ groups, totalGroups , succes:true });
   } catch (err) {
     console.log(err.message);
     res.status(500).send("Server Error");
@@ -80,7 +92,7 @@ router.put("/", async (req, res) => {
   if(!groupId){
     return res.status(200).json({message:"groupId is required"})
   }
-  
+
   try {
     const group = await chatroom.findById({ _id: groupId });
     if (!group) {
