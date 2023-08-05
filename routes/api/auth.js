@@ -326,14 +326,32 @@ router.post("/signup", signupValidator, async (req, res) => {
     ).catch((err) => {
       console.log(err, "in adding otp in db");
     });
-    console.log(success, message);
-    return res
-      .status(!success ? 422 : 201)
-      .json({
-        message: "user registered successfully",
-        success: true,
-        newUser,
-      });
+
+    const payLoad = {
+      user: {
+        id: user.id,
+      },
+    };
+    jwt.sign(
+      payLoad,
+      "mysecrettoken",
+      { expiresIn: 36000000 },
+      (err, token) => {
+        if (err) {
+          // throw err;
+        return  res.status(422).json({message:"jwt err",success:false , err})
+        }
+       return  res.status(200).json({ token, status: 200, msg: "User Registered", newUser , success:true });
+      }
+    );
+    // console.log(success, message);
+    // return res
+    //   .status(!success ? 422 : 201)
+    //   .json({
+    //     message: "user registered successfully",
+    //     success: true,
+    //     newUser,
+    //   });
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ message: "Server error", success: false });
