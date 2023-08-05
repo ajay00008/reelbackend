@@ -262,7 +262,7 @@ router.post(
 router.post("/signup", signupValidator, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.errors[0].msg });
+    return res.status(400).json({ errors: errors.errors[0].msg , success : false});
   }
   const {
     email,
@@ -284,11 +284,11 @@ router.post("/signup", signupValidator, async (req, res) => {
     if (user) {
       return res
         .status(400)
-        .json({ errors: [{ msg: "User email already exists" }] });
+        .json({ success:false , errors: "User email already exists"});
     } else if (checkUsername) {
       return res
         .status(400)
-        .json({ errors: [{ msg: "Username already exists" }] });
+        .json({ errors:"username already exist" , success:false });
     }
     let newUser;
     if (profileType === "personal") {
@@ -339,7 +339,7 @@ router.post("/signup", signupValidator, async (req, res) => {
       (err, token) => {
         if (err) {
           // throw err;
-        return  res.status(422).json({message:"jwt err",success:false , err})
+        return  res.status(422).json({message:"jwt err",success:false , errors:"jwt error"})
         }
        return  res.status(200).json({ token, status: 200, msg: "User Registered", newUser , success:true });
       }
