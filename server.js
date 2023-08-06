@@ -66,6 +66,11 @@ app.use("/api/chats", require("./routes/api/chats"));
 app.use("/api/groups", auth, require("./routes/api/group"));
 app.use("/api/chatmessages", auth, require("./routes/api/chatMessage"));
 
+
+api.get("*",(req,res)=>{
+  return res.status(404).json({message:'no route found in [reelmail]'})
+})
+
 const server = app.listen(PORT, () => {
   console.log(`Server Started on Port ${PORT}`);
 });
