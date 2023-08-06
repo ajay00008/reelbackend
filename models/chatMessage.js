@@ -9,7 +9,7 @@ const ChatMessageSchema = new mongoose.Schema({
         type:String,
         ref:'Chatroom'
     },
-    message: {
+    text: {
         type: String
     },
     type:{

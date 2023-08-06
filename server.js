@@ -162,13 +162,13 @@ io.on("connection", (socket) => {
     const userchatroom  = await chatroom.findById({_id:roomId});
     // console.log(userchatroom,"chatrrr")
     if(userchatroom){
-       userchatroom.message =text? text: null
+       userchatroom.text =text? text: null
        await userchatroom.save();
 
       const newMessage =  new chatMessage({
         roomId: roomId,
         sender: user._id,
-        message: text,
+        text: text,
       });
       await newMessage.save();
     }
