@@ -92,8 +92,7 @@ io.on("connection", (socket) => {
 
   socket.on("new message", async (newMessageRec) => {
     console.log(newMessageRec, "newwwmee");
-    socket
-      .in(newMessageRec.reciver._id)
+    socket.in(newMessageRec.reciver._id)
       .emit("message recieved", newMessageRec);
     const newMessage = await new Message({
       roomId: newMessageRec.roomId,
@@ -125,8 +124,8 @@ io.on("connection", (socket) => {
       rooms[roomId] = [];
     }
 
-    // Send previous messages to the newly joined user
-    // socket.emit("message", rooms[roomId]);
+   socket.emit("message", rooms[roomId]);
+  //  Send previous messages to the newly joined user
 
     socket.on("disconnect", () => {
       console.log("A user disconnected");
@@ -137,24 +136,24 @@ io.on("connection", (socket) => {
     console.log("Received message:", data);
     console.log(rooms, "heee");
 
-    const { roomId, message, sender, name } = data;
+    const { roomId, message, user} = data;
+    const{_id , name , avatar} = user
 
     // Save the message to the room's message history
     if (rooms[roomId]) {
       rooms[roomId].push({
         chatroom: roomId,
-        sender,
+        user,
         message: message,
-        name,
       }); // Include sender's information
     } else {
       rooms[roomId] = [
-        { chatroom: roomId, sender, message: message, name },
+        { chatroom: roomId, user , message: message },
       ];
     }
     console.log(roomId, "rommmmmm", message);
     console.log(rooms, "heee");
     // Broadcast the message to all clients in the room
-    io.to(roomId).emit("chat message", { chatroom: roomId, sender: sender, message: message  });
+    io.to(roomId).emit("chat message", { chatroom: roomId, user , message: message  });
   });
 });
