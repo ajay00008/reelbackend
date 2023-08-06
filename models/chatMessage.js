@@ -1,41 +1,47 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 
-const ChatMessageSchema = new mongoose.Schema({
-    user:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'user'
+const ChatMessageSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
     },
     roomId: {
-        type:String,
-        ref:'Chatroom'
+      type: String,
+      ref: "Chatroom",
     },
     text: {
-        type: String
+      type: String,
     },
-    type:{
-        type: String
+    type: {
+      type: String,
     },
     reelVideo: {
-        type:String
+      type: String,
     },
     video: {
-        type: String
+      type: String,
     },
     image: {
-        type: String
+      type: String,
     },
     date: {
-        type:Date,
-        default: Date.now
+      type: Date,
+      default: Date.now,
     },
     reel: {
-        type: Boolean,
-        default:false
+      type: Boolean,
+      default: false,
     },
     isReelCompleted: {
-        type: Boolean,
-        default:false
-    }
-})
+      type: Boolean,
+      default: false,
+    },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+  }
+);
 
-module.exports = chatMessage = mongoose.model('chatMessage',ChatMessageSchema)
+module.exports = chatMessage = mongoose.model("chatMessage", ChatMessageSchema);

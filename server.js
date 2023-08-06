@@ -17,6 +17,8 @@ const app = express();
 connectDB();
 mailConnected();
 
+
+
 const PORT = process.env.PORT || 5000;
 
 // app.use(fileUpload())
@@ -67,8 +69,15 @@ app.use("/api/groups", auth, require("./routes/api/group"));
 app.use("/api/chatmessages", auth, require("./routes/api/chatMessage"));
 
 
-app.get("*",(req,res)=>{
-  return res.status(404).json({message:'no route found in [reelmail]'})
+app.get("/notify",async (req,res)=>{
+ const data =  sendFirebaseNotifications(
+    `${"newMessageRec.user.name"} Sent You A Message`,
+    `eyjBHNosT4q3ldrdm7O0rU:APA91bHBMSkIggb-1OG7ahEKLOXyqtjYxnhWzZkqIdExFHPFgfR3WgpXN5_88gENDe6PZB1l7HSQlNlQUHH5y8GvbbAaoGBDRrK2RTUyARaKLKSvk82lhYPpSsxTU6GvwUSvjGthhEoW`,
+    JSON.stringify({sendingUser:"nammeeeeee"}),
+    "chat"
+  );
+  console.log(data,"hgg")
+  return res.status(404).json({message:'no route found in [reelmail]' , data})
 })
 
 const server = app.listen(PORT, () => {

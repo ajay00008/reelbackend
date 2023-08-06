@@ -6,13 +6,43 @@ const router = Router();
 
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
-//   console.log(id);
   if (!id) {
     return res.status(422).json({ message: "id is required" });
   }
   try {
-    const messages = await chatMessage.find({ roomId: id }).populate("user", "username media _id fcmToken")
-      .sort({ date: -1 });
+    const messages = await chatMessage.aggregate([
+      { $match: { roomId: id } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: "$user" },
+      {
+        $project: {
+          _id: 1,
+          roomId: 1,
+          user: {
+            _id: "$user._id",
+            username: "$user.username",
+            fcmToken: "$user.fcmToken",
+            avatar: "$user.media", // Rename "media" to "avatar"
+          },
+          createdAt:"$date" ,
+          text:1,
+          type:1,
+          image:1,
+          video:1,
+          reel:1,
+          isReelCompleted:1
+        },
+      },
+      { $sort: { date: -1 } },
+    ]);
+
     return res.status(200).json({ messages, status: 200 });
   } catch (err) {
     console.log(err.message);
