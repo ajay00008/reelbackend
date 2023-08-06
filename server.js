@@ -136,7 +136,7 @@ io.on("connection", (socket) => {
     console.log("Received message:", data);
     console.log(rooms, "heee");
 
-    const { roomId, message, user , createdAt  } = data;
+    const { roomId, message, user , createdAt , receiver } = data;
     const{_id , name , avatar} = user
 
     // Save the message to the room's message history
@@ -145,16 +145,17 @@ io.on("connection", (socket) => {
         chatroom: roomId,
         user,
         message: message,
-        createdAt
+        createdAt,
+        receiver
       }); // Include sender's information
     } else {
       rooms[roomId] = [
-        { chatroom: roomId, createdAt ,  user , message: message  },
+        { chatroom: roomId, createdAt ,  user , message: message , receiver  },
       ];
     }
     console.log(roomId, "rommmmmm", message);
     console.log(rooms, "heee");
     // Broadcast the message to all clients in the room
-    io.to(roomId).emit("chat message", { chatroom: roomId, createdAt ,  user , message: message , reciever });
+    io.to(roomId).emit("chat message", { chatroom: roomId, createdAt ,  user , receiver , message: message  });
   });
 });
