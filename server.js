@@ -67,7 +67,7 @@ app.use("/api/groups", auth, require("./routes/api/group"));
 app.use("/api/chatmessages", auth, require("./routes/api/chatMessage"));
 
 
-api.get("*",(req,res)=>{
+app.get("*",(req,res)=>{
   return res.status(404).json({message:'no route found in [reelmail]'})
 })
 
