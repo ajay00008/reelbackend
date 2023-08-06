@@ -10,6 +10,8 @@ const Message = require("./models/Message");
 const User = require("./models/User");
 const { mailConnected } = require("./service/nodemailer");
 const auth = require("./middleware/auth");
+const chatroom = require("./models/chatroom");
+const chatMessage = require("./models/chatMessage");
 const app = express();
 
 connectDB();
@@ -62,6 +64,7 @@ app.use("/api/notifications", require("./routes/api/notifications"));
 app.use("/api/subscription", require("./routes/api/subscription"));
 app.use("/api/chats", require("./routes/api/chats"));
 app.use("/api/groups", auth, require("./routes/api/group"));
+app.use("/api/chatmessages", auth, require("./routes/api/chatMessage"));
 
 const server = app.listen(PORT, () => {
   console.log(`Server Started on Port ${PORT}`);
@@ -132,12 +135,12 @@ io.on("connection", (socket) => {
     });
   });
   // Handle incoming chat messages
-  socket.on("chat message", (data) => {
+  socket.on("chat message",async (data) => {
     console.log("Received message:", data);
     console.log(rooms, "heee");
 
     const { roomId, text, user , createdAt , receiver } = data;
-    const{_id , name , avatar} = user
+    // const{_id , name , avatar} = user
 
     // Save the message to the room's message history
     if (rooms[roomId]) {
@@ -153,9 +156,22 @@ io.on("connection", (socket) => {
         { roomId, createdAt ,  user , text , receiver  },
       ];
     }
-    console.log(roomId, "rommmmmm", text);
-    console.log(rooms, "heee");
+    console.log(rooms ,"roomId", roomId, "message", text);
     // Broadcast the message to all clients in the room
     io.to(roomId).emit("chat message", { roomId, createdAt ,  user , receiver , text });
+    const userchatroom  = await chatroom.findById({_id:roomId});
+    // console.log(userchatroom,"chatrrr")
+    if(userchatroom){
+       userchatroom.message =text? text: null
+       await userchatroom.save();
+
+      const newMessage =  new chatMessage({
+        roomId: roomId,
+        sender: user._id,
+        message: text,
+      });
+      await newMessage.save();
+    }
+
   });
 });

@@ -12,6 +12,9 @@ const chatRoomSchema = new Schema(
     image: {
       type: String,
     },
+    message: {
+      type: String
+  },
     isGroup: {
       type: Boolean,
       default: false,

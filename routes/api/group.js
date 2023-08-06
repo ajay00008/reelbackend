@@ -24,7 +24,7 @@ router.get("/", async (req, res) => {
         ],
       })
       .populate("members", "username media _id fcmToken")
-      .populate("admin", "username media _id fcmToken");
+      .populate("admin", "username media _id fcmToken").sort({updatedAt:-1});
 
     return res.status(200).json({ groups, totalGroups, succes: true });
   } catch (err) {
