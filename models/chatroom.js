@@ -14,7 +14,10 @@ const chatRoomSchema = new Schema(
     },
     text: {
       type: String
-  },
+    },
+    type:{
+      type:String
+    },
     isGroup: {
       type: Boolean,
       default: false,

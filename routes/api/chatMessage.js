@@ -11,7 +11,7 @@ router.get("/:id", async (req, res) => {
     return res.status(422).json({ message: "id is required" });
   }
   try {
-    const messages = await chatMessage.find({ roomId: id }).populate("sender", "username media _id fcmToken")
+    const messages = await chatMessage.find({ roomId: id }).populate("user", "username media _id fcmToken")
       .sort({ date: -1 });
     return res.status(200).json({ messages, status: 200 });
   } catch (err) {
