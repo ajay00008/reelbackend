@@ -279,7 +279,7 @@ router.post("/signup", signupValidator, async (req, res) => {
     const userCount = await User.find().count();
     let user = await User.findOne({ email });
     let checkUsername = await User.findOne({ username });
-    console.log(user, checkUsername);
+    // console.log(user, checkUsername);
 
     if (user) {
       return res
@@ -300,6 +300,9 @@ router.post("/signup", signupValidator, async (req, res) => {
         username,
         profileType,
         profile_no: userCount + 1,
+        subscriptionType:{
+          reelCoin:20
+        }
       });
     } else {
       newUser = new User({
@@ -310,6 +313,9 @@ router.post("/signup", signupValidator, async (req, res) => {
         username,
         email,
         profile_no: userCount + 1,
+        subscriptionType:{
+          reelCoin:50
+        }
       });
     }
     const salt = await bcrypt.genSalt(10);
