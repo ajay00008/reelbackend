@@ -40,7 +40,7 @@ router.get("/:id", async (req, res) => {
           isReelCompleted:1
         },
       },
-      { $sort: { date: -1 } },
+      { $sort: { createdAt: -1 } },
     ]);
 
     return res.status(200).json({ messages, status: 200 });
