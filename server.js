@@ -153,7 +153,7 @@ io.on("connection", (socket) => {
     console.log("Received message:", data);
     console.log(rooms, "heee");
 
-    const { roomId, text, user , createdAt , receiver , image , type , video , reel , isReelCompleted} = data;
+    const { roomId, text, user , createdAt , receiver , image , type , video , reel , reelVideo , isReelCompleted} = data;
     // const{_id , name , avatar} = user
 
     // Save the message to the room's message history
@@ -167,17 +167,18 @@ io.on("connection", (socket) => {
         image,
         type,
         video,
-        reel
+        reel,
+        reelVideo
       }); // Include sender's information
     } else {
       rooms[roomId] = [
-        { roomId, createdAt ,  user , text , receiver , image , type , video , reel },
+        { roomId, createdAt ,  user , text , receiver , image , type , video , reel , reelVideo},
       ];
     }
     console.log(rooms ,"roomId", roomId, "message", text);
     let responseMessage = text ? text : image || video
     // Broadcast the message to all clients in the room
-    io.to(roomId).emit("chat message", { roomId, createdAt ,  user , receiver , text , image , video ,  type , reel });
+    io.to(roomId).emit("chat message", { roomId, createdAt ,  user , receiver , text , image , video ,  type , reel , reelVideo });
     const userchatroom  = await chatroom.findById({_id:roomId});
     // console.log(userchatroom,"chatrrr")
     if(userchatroom) {
@@ -194,6 +195,7 @@ io.on("connection", (socket) => {
         type:type || null,
         reel: reel ? reel : false,
         isReelCompleted: isReelCompleted ? isReelCompleted : false,
+        reelVideo:reelVideo ? reelVideo : false
       });
       await newMessage.save();
     }

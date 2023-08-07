@@ -33,6 +33,9 @@ const ChatMessageSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    reelVideo: {
+      type: String,
+    },
     isReelCompleted: {
       type: Boolean,
       default: false,

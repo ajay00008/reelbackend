@@ -6,6 +6,9 @@ const fs = require("fs");
 const { uploadImage } = require("../../upload/uploadImage");
 const { groupValidator } = require("../../utils/validators/groupValidator");
 const { validationResult } = require("express-validator");
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
+
 
 router.get("/", async (req, res) => {
   const userId = req.user.id;
@@ -81,6 +84,61 @@ router.post("/", groupValidator, async (req, res) => {
   }
 });
 
+// router.put("/", async (req, res) => {
+//   const { groupId, groupName, members, image } = req.body;
+//   console.log(image, groupId);
+//   const loggedInUserId = req.user.id.toString();
+//   if (!groupId) {
+//     return res.status(200).json({ message: "groupId is required" });
+//   }
+
+//   try {
+//     const group = await chatroom.findById({ _id: groupId });
+//     if (!group) {
+//       return res.status(404)
+//         .json({ message: "no group found", success: false });
+//     }
+//     const { admin } = group;
+
+//     if (loggedInUserId !== admin) {
+//       return res.status(404).json({
+//         message: "only admin have access to update group",
+//         success: false,
+//       });
+//     }
+
+//     group.groupName = groupName ? groupName : group.groupName;
+//     group.image = image ? image : group.image;
+
+//     const existingMembers = [];
+//     const newMembers = [];
+
+//     for (const memberId of members) {
+//       const memberExists = group.members.includes(memberId);
+//       if (memberExists) {
+//         existingMembers.push(memberId);
+//       } else {
+//         newMembers.push(memberId);
+//         group.members.push(memberId);
+//       }
+//     }
+
+//     const updateRecords = await group.save();
+//     res.status(200).json({
+//       group: updateRecords,
+//       existingMembers : existingMembers.length,
+//       newMembers : newMembers.length,
+//       message: "update successfully",
+//       success: true,
+//     });
+//   } catch (error) {
+//     console.log(error.message);
+//     res.status(500).json({ message: error.message, success: false });
+//   }
+// });
+
+
+
 router.put("/", async (req, res) => {
   const { groupId, groupName, members, image } = req.body;
   console.log(image, groupId);
@@ -106,25 +164,12 @@ router.put("/", async (req, res) => {
 
     group.groupName = groupName ? groupName : group.groupName;
     group.image = image ? image : group.image;
+    group.members = members ? members : group.members;
 
-    const existingMembers = [];
-    const newMembers = [];
-
-    for (const memberId of members) {
-      const memberExists = group.members.includes(memberId);
-      if (memberExists) {
-        existingMembers.push(memberId);
-      } else {
-        newMembers.push(memberId);
-        group.members.push(memberId);
-      }
-    }
 
     const updateRecords = await group.save();
     res.status(200).json({
       group: updateRecords,
-      existingMembers : existingMembers.length,
-      newMembers : newMembers.length,
       message: "update successfully",
       success: true,
     });
