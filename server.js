@@ -178,7 +178,7 @@ io.on("connection", (socket) => {
     console.log(rooms ,"roomId", roomId, "message", text);
     let responseMessage = text ? text : image || video
     // Broadcast the message to all clients in the room
-    io.to(roomId).emit("chat message", { roomId, createdAt ,  user , receiver , text , image , video ,  type , reel , reelVideo });
+    io.to(roomId).emit("chat message", { roomId, createdAt ,  user , receiver , text , image , video ,  type , reel , reelVideo , isReelCompleted});
     const userchatroom  = await chatroom.findById({_id:roomId});
     // console.log(userchatroom,"chatrrr")
     if(userchatroom) {
