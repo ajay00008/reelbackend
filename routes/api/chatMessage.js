@@ -37,7 +37,8 @@ router.get("/:id", async (req, res) => {
           image:1,
           video:1,
           reel:1,
-          isReelCompleted:1
+          isReelCompleted:1,
+          reelVideo:1
         },
       },
       { $sort: { createdAt: -1 } },
