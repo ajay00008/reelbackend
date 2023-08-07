@@ -168,11 +168,12 @@ io.on("connection", (socket) => {
         type,
         video,
         reel,
-        reelVideo
+        reelVideo,
+        isReelCompleted
       }); // Include sender's information
     } else {
       rooms[roomId] = [
-        { roomId, createdAt ,  user , text , receiver , image , type , video , reel , reelVideo},
+        { roomId, createdAt ,  user , text , receiver , image , type , video , reel , reelVideo , isReelCompleted},
       ];
     }
     console.log(rooms ,"roomId", roomId, "message", text);
