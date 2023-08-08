@@ -114,7 +114,7 @@ module.exports = async function sendFirebaseNotifications(msg, token, contentId,
 
 module.exports = async function sendMultipleNotifications(msg, tokens, contentId, type) {
     try {
-      const messages = tokens.map((token) => ({
+      const messages = tokens?.map((token) => ({
         data: {
           contentId: contentId,
           type: type
