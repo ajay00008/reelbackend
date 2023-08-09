@@ -193,71 +193,71 @@ router.post("/login", async (req, res) => {
 });
 
 //REGISTER
-router.post(
-  "/register",
-  multerUploadInMemory.single("image"),
-  async (req, res) => {
-    const { email, password, firstName, lastName, gender, username } = req.body;
-    try {
-      var userCount = await User.find().count();
-      let user = await User.findOne({ email });
-      let checkUsername = await User.findOne({ username });
-      if (user) {
-        return res
-          .status(400)
-          .json({ errors: [{ msg: "User already exist" }] });
-      } else if (checkUsername) {
-        return res
-          .status(400)
-          .json({ errors: [{ msg: "Username already exist" }] });
-      } else {
-        // const uploadResult = await S3.upload({
-        //   Bucket: "reelmails",
-        //   Key: req.file.originalname,
-        //   Body: req.file.buffer,
-        //   ACL: "public-read",
-        //   ContentType: req.file.mimetype,
-        // }).promise();
+// router.post(
+//   "/register",
+//   multerUploadInMemory.single("image"),
+//   async (req, res) => {
+//     const { email, password, firstName, lastName, gender, username } = req.body;
+//     try {
+//       var userCount = await User.find().count();
+//       let user = await User.findOne({ email });
+//       let checkUsername = await User.findOne({ username });
+//       if (user) {
+//         return res
+//           .status(400)
+//           .json({ errors: [{ msg: "User already exist" }] });
+//       } else if (checkUsername) {
+//         return res
+//           .status(400)
+//           .json({ errors: [{ msg: "Username already exist" }] });
+//       } else {
+//         // const uploadResult = await S3.upload({
+//         //   Bucket: "reelmails",
+//         //   Key: req.file.originalname,
+//         //   Body: req.file.buffer,
+//         //   ACL: "public-read",
+//         //   ContentType: req.file.mimetype,
+//         // }).promise();
 
-        // if(uploadResult) {
-        user = new User({
-          email,
-          password,
-          firstName,
-          lastName,
-          username,
-          profile_no: userCount + 1,
-        });
+//         // if(uploadResult) {
+//         user = new User({
+//           email,
+//           password,
+//           firstName,
+//           lastName,
+//           username,
+//           profile_no: userCount + 1,
+//         });
 
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(password, salt);
-        await user.save();
-        const payLoad = {
-          user: {
-            id: user.id,
-          },
-        };
-        jwt.sign(
-          payLoad,
-          "mysecrettoken",
-          { expiresIn: 36000000 },
-          (err, token) => {
-            if (err) {
-              throw err;
-            }
-            res.json({ token, status: 200, msg: "User Registered", user });
-          }
-        );
-        // } else {
-        //   res.status(500).send("Server error");
-        // }
-      }
-    } catch (err) {
-      console.log(err.message);
-      res.status(500).send("Server error");
-    }
-  }
-);
+//         const salt = await bcrypt.genSalt(10);
+//         user.password = await bcrypt.hash(password, salt);
+//         await user.save();
+//         const payLoad = {
+//           user: {
+//             id: user.id,
+//           },
+//         };
+//         jwt.sign(
+//           payLoad,
+//           "mysecrettoken",
+//           { expiresIn: 36000000 },
+//           (err, token) => {
+//             if (err) {
+//               throw err;
+//             }
+//             res.json({ token, status: 200, msg: "User Registered", user });
+//           }
+//         );
+//         // } else {
+//         //   res.status(500).send("Server error");
+//         // }
+//       }
+//     } catch (err) {
+//       console.log(err.message);
+//       res.status(500).send("Server error");
+//     }
+//   }
+// );
 
 router.post("/signup", signupValidator, async (req, res) => {
   const errors = validationResult(req);

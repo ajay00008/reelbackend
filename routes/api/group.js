@@ -93,7 +93,7 @@ router.post("/", groupValidator, async (req, res) => {
       image: image || groupImage,
       isGroup: true,
     });
-    // const data = await group.save();
+    const data = await group.save();
     res.status(201).json({ group: data, success: true });
   } catch (error) {
     console.log(error.message);
