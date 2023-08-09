@@ -12,6 +12,8 @@ const fs = require("fs");
 const sendFirebaseNotifications = require("../../middleware/notifications");
 const sendMultipleNotifications = require("../../middleware/notifications");
 const Notification = require("../../models/Notification");
+const Message = require("../../models/Message");
+const { storyreplyValidator } = require("../../utils/validators/messageValidator");
 
 // Create Post
 router.post("/", auth, async (req, res) => {
@@ -246,7 +248,49 @@ router.get("/stories", auth, async (req, res) => {
   }
 });
 
+router.post ("/storyreply" ,auth , storyreplyValidator , async(req,res)=>{
+  const loggedInUserId = req.user?.id
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.errors[0].msg, success: false });
+  }
+  const {
+    roomId,
+    reciver,
+    text,
+    messageType,
+    reaction,
+    postId
+  } = req.body;
 
+  try {
+    const newMessage = new Message({
+      roomId: roomId,
+      sender: loggedInUserId,
+      reciever: reciver,
+      message: text ? text : null ,
+      reaction: reaction ? reaction : null ,
+      messageType: messageType ? messageType : null,
+      post : postId
+    });
+    // const recUser = await User.findById(reciver);
+    // const sendingUser = await User.findById(user);
+
+    await newMessage.save();
+    // if (recUser.fcmToken) {
+    //   sendFirebaseNotifications(
+    //     `${sendingUser.firstName} Sent You A Post`,
+    //     recUser.fcmToken,
+    //     JSON.stringify(sendingUser),
+    //     "chat"
+    //   );
+    // }
+    res.status(200).json({newMessage , status:200 , success:true})
+  } catch (error) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+})
 
 // Get Post By Id
 router.get("/:id", auth, async (req, res) => {

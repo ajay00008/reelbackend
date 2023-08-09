@@ -138,53 +138,6 @@ router.get("/",  auth , async (req, res) => {
   });
   
 
-
-  // router.get("/c", auth , async (req, res) => {
-  //   try {
-  //     // const loggedInUserId = '64c56f0ee396e3a8bc81d29d';
-  //     // const loggedInUserId = "64c6699fe396e3a8bc81da4c";
-  //     const loggedInUserId = req.user.id
-  
-  //     const messages = await Message.find({
-  //       $or: [{ sender: loggedInUserId }, { reciever: loggedInUserId }],
-  //     })
-  //       .sort({ date: -1 })
-  //       .populate("sender reciever", "_id username")
-  //       .select("-reel -isReelCompleted"); // Populate 'sender' and 'reciever' with '_id' and 'name'
-  
-  //     const groupedChats = messages.reduce((grouped, message) => {
-  //       const roomId = message.roomId;
-  //       if (!grouped[roomId]) {
-  //         grouped[roomId] = [];
-  //       }
-  //       grouped[roomId].push(message);
-  //       return grouped;
-  //     }, {});
-  
-  //     const chatGroups = Object.entries(groupedChats).map(
-  //       ([roomId, messages]) => {
-  //         const otherUser =
-  //           messages[0]?.sender?._id.toString() === loggedInUserId
-  //             ? messages[0].reciever
-  //             : messages[0].sender;
-  //         const otherUserName = otherUser?.username || "unknown User";
-  //         const otherUserId = otherUser?._id || "unknown";
-  
-  //         return {
-  //           room_id: roomId,
-  //           userId: otherUserId,
-  //           userName: otherUserName,
-  //           lastmessageDetails: messages[0],
-  //         };
-  //       }
-  //     );
-  
-  //     res.status(200).json({ chats: chatGroups, lenght: chatGroups.length });
-  //   } catch (err) {
-  //     console.log(err.message);
-  //     res.status(500).send("Server Error");
-  //   }
-  // });
   
 
   module.exports = router;

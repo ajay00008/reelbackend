@@ -20,7 +20,7 @@ router.get("/:id", auth, async (req, res) => {
     var messages = await Message.find({ roomId: req.params.id })
       .sort({ date: -1 })
       .populate("reciever")
-      .populate("sender");
+      .populate("sender").populate("post") ;
 
     var newMessages = messages.map((val) => {
       return {
@@ -35,6 +35,9 @@ router.get("/:id", auth, async (req, res) => {
         reel: val.reel,
         messageType: val.messageType,
         isReelCompleted: val.isReelCompleted,
+        reaction:val?.reaction,
+        messageType:val?.messageType,
+        post :val?.post
       };
     });
 
@@ -59,6 +62,9 @@ router.get("/:id", auth, async (req, res) => {
         reel: user.reel,
         messageType: user.messageType,
         isReelCompleted: user.isReelCompleted,
+        reaction:user?.reaction,
+        messageType:user?.messageType,
+        post :user?.post
       };
     });
 

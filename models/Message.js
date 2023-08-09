@@ -35,6 +35,17 @@ const MessageSchema = new mongoose.Schema({
     isReelCompleted: {
         type: Boolean,
         default:false
+    },
+    reaction:{
+        type:Number,
+        default:null
+    },
+    post:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'post'  
+    },
+    messageType:{
+         type:String
     }
 })
 

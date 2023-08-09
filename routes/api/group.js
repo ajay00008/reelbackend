@@ -72,7 +72,7 @@ router.post("/", groupValidator, async (req, res) => {
       return res.status(404).json({success:false ,  msg : "user not found"})
     }
     const profileType = userInfo.profileType
-    // console.log(profileType,"pro")
+    console.log(profileType,"pro")
     if(profileType ==='business'){
        if(members.length >20){
           return res.status(200).json({success:false , errors:"business users can't  add more than 20 members" , message:"members limit reached"})
