@@ -59,21 +59,18 @@ router.post("/", groupValidator, async (req, res) => {
   const loggedInUserId = req.user.id;
   const { groupName, members, admin, image } = req.body;
 
-  console.log(groupName, members, admin, req.body);
+  // console.log(groupName, members, admin, req.body);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res
-      .status(400)
+    return res.status(400)
       .json({ errors: errors.errors[0].msg, success: false });
   }
   try {
 
     const userInfo = await User.findById({_id:loggedInUserId})
-    // return  false;
     if(!userInfo){
       return res.status(404).json({success:false ,  msg : "user not found"})
     }
-
     const profileType = userInfo.profileType
     // console.log(profileType,"pro")
     if(profileType ==='business'){
@@ -85,7 +82,6 @@ router.post("/", groupValidator, async (req, res) => {
         return res.status(200).json({success:false , errors:"personal users can't  add more than 5 members" , message:"members limit reached"})
      }
     }
-
 
     let groupImage =
       "https://www.airscan.org/wp-content/uploads/2023/02/Iconen-website-47-1024x1024.png";
@@ -169,6 +165,21 @@ router.put("/", async (req, res) => {
   }
 
   try {
+    const userInfo = await User.findById({_id:loggedInUserId})
+    if(!userInfo){
+      return res.status(404).json({success:false ,  msg : "user not found"})
+    }
+    const profileType = userInfo.profileType
+    if(profileType ==='business'){
+       if(members.length >20){
+          return res.status(200).json({success:false , errors:"business users can't  add more than 20 members" , message:"members limit reached"})
+       }
+    } else{
+      if(members.length >5){
+        return res.status(200).json({success:false , errors:"personal users can't  add more than 5 members" , message:"members limit reached"})
+     }
+    }
+
     const group = await chatroom.findById({ _id: groupId });
     if (!group) {
       return res.status(404)
