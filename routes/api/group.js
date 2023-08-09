@@ -7,6 +7,7 @@ const { uploadImage } = require("../../upload/uploadImage");
 const { groupValidator } = require("../../utils/validators/groupValidator");
 const { validationResult } = require("express-validator");
 const mongoose = require("mongoose");
+const User = require("../../models/User");
 const ObjectId = mongoose.Types.ObjectId;
 
 
@@ -66,6 +67,26 @@ router.post("/", groupValidator, async (req, res) => {
       .json({ errors: errors.errors[0].msg, success: false });
   }
   try {
+
+    const userInfo = await User.findById({_id:loggedInUserId})
+    // return  false;
+    if(!userInfo){
+      return res.status(404).json({success:false ,  msg : "user not found"})
+    }
+
+    const profileType = userInfo.profileType
+    // console.log(profileType,"pro")
+    if(profileType ==='business'){
+       if(members.length >20){
+          return res.status(200).json({success:false , errors:"business users can't  add more than 20 members" , message:"members limit reached"})
+       }
+    } else{
+      if(members.length >5){
+        return res.status(200).json({success:false , errors:"personal users can't  add more than 5 members" , message:"members limit reached"})
+     }
+    }
+
+
     let groupImage =
       "https://www.airscan.org/wp-content/uploads/2023/02/Iconen-website-47-1024x1024.png";
     // const data = await resizeAndUploadImage(image);
@@ -76,7 +97,7 @@ router.post("/", groupValidator, async (req, res) => {
       image: image || groupImage,
       isGroup: true,
     });
-    const data = await group.save();
+    // const data = await group.save();
     res.status(201).json({ group: data, success: true });
   } catch (error) {
     console.log(error.message);
