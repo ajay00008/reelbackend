@@ -98,7 +98,8 @@ router.post("/video", auth, async (req, res) => {
 router.get("/", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
-    const post = await Post.find({ postType: "Post", _id: { $nin: user.hiddenPost } ,  user: { $in: user.following }, })
+    // user: { $in: user.following },
+    const post = await Post.find({ postType: "Post", _id: { $nin: user.hiddenPost } })
       .sort({ date: -1 })
       .populate("user")
       .populate({
