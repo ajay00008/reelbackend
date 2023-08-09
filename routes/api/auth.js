@@ -527,11 +527,26 @@ router.post("/forgot", emailValidator, async (req, res) => {
         .json({ success: false, message: "email not sent" });
     }
 
-    const result = await Otp.updateOne(
-      { email },
-      { $set: { otp: hashedOTP, expiresAt: expirationTime } },
-      { upsert: true }
-    );
+    try {
+      const result = await Otp.updateOne(
+        { email },
+        { $set: { otp: hashedOTP, expiresAt: expirationTime } },
+        { upsert: true }
+      );
+      console.log(result, "result");
+    
+      return res.status(200).json({
+        success: true,
+        message: `OTP sent to your email address ${email}. Please check your inbox.`,
+      });
+    } catch (error) {
+      console.error(error); // Log the error for debugging purposes
+      return res.status(500).json({
+        success: false,
+        message: "An error occurred while updating OTP.",
+      });
+    }
+    
     console.log(result, "result");
     return res.status(200).json({
       success: true,
