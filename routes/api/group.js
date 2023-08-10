@@ -255,8 +255,8 @@ router.post("/leave/:id", auth , leaveValidator  ,  async (req, res) => {
     }
 
     const { members , admin , groupName} = group;
-
-    if (!members.includes(memberId)) {
+     
+    if (!members.includes(memberId) && memberId !==admin) {
       return res.status(400).json({
         message: "You are not a member of this group.",
         success: false,
@@ -269,13 +269,19 @@ router.post("/leave/:id", auth , leaveValidator  ,  async (req, res) => {
         success: false,
       });
     }
-    
-    const updateRecords = await chatroom.findOneAndUpdate(
-      { _id: groupId },
-      { $pull: { members: memberId } },
-      { new: true }
-    );
-    
+
+    let updateRecords;
+    if(memberId===admin){
+      group.admin = group.members[0] || null
+      updateRecords = await group.save()
+    }  else{
+      updateRecords = await chatroom.findOneAndUpdate(
+        { _id: groupId },
+        { $pull: { members: memberId } },
+        { new: true }
+      );      
+    }
+
     res.status(200).json({
       group: updateRecords,
       message: `successfully left the ${groupName} group `,
