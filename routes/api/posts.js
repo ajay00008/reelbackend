@@ -260,7 +260,8 @@ router.post ("/storyreply" ,auth , storyreplyValidator , async(req,res)=>{
     text,
     messageType,
     reaction,
-    postId
+    postId,
+    replyVideo
   } = req.body;
 
   try {
@@ -271,7 +272,8 @@ router.post ("/storyreply" ,auth , storyreplyValidator , async(req,res)=>{
       message: text ? text : null ,
       reaction: reaction ? reaction : null ,
       messageType: messageType ? messageType : null,
-      post : postId
+      post : postId,
+      replyVideo: replyVideo? replyVideo: null
     });
     // const recUser = await User.findById(reciver);
     // const sendingUser = await User.findById(user);

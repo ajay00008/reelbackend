@@ -57,7 +57,7 @@ router.get("/:id", auth, async (req, res) => {
         text: user.text,
         _id: user._id,
         image: user.image ? `${user.image}` : user?.post?.media || null,
-        video: user.video ? `${user.video}` : user?.post?.media || null,
+        video: user.video ? `${user.video}` : null,
         reelVideo: user.reelVideo ? `${user.reelVideo}` : null,
         reel: user.reel,
         messageType: user.messageType,

@@ -46,6 +46,9 @@ const MessageSchema = new mongoose.Schema({
     },
     messageType:{
          type:String
+    },
+    replyVideo:{
+        type:String
     }
 })
 
