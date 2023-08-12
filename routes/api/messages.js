@@ -37,7 +37,8 @@ router.get("/:id", auth, async (req, res) => {
         isReelCompleted: val.isReelCompleted,
         reaction:val?.reaction,
         messageType:val?.messageType,
-        post :val?.post
+        post :val?.post,
+        replyVideo:val?.replyVideo? val.replyVideo : null,
       };
     });
 
@@ -64,7 +65,8 @@ router.get("/:id", auth, async (req, res) => {
         isReelCompleted: user.isReelCompleted,
         reaction:user?.reaction,
         messageType:user?.messageType,
-        post :user?.post
+        post :user?.post,
+        replyVideo: user?.replyVideo? user.replyVideo : null,
       };
     });
 
