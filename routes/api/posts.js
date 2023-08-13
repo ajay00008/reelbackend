@@ -103,8 +103,9 @@ router.post("/video", auth, async (req, res) => {
 // Get All Post
 router.get("/", auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user.id).select("-password +savedPosts");
     const savedPosts = user.savedPosts;
+    // console.log(savedPosts ,"savv", user)
     // user: { $in: user.following },
     const post = await Post.find({
       postType: "Post",
