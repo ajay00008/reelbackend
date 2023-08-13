@@ -30,7 +30,7 @@ router.get("/:id", auth, async (req, res) => {
         createdAt: val.date,
         text: val.message,
         image: val.image ? val.image : undefined,
-        video: val.video ? val.video : undefined,
+        video: val.video ? val.video : val?.replyVideo? val.replyVideo :  undefined,
         reelVideo: val.reelVideo ? val.reelVideo : undefined,
         reel: val.reel,
         messageType: val.messageType,
@@ -38,7 +38,7 @@ router.get("/:id", auth, async (req, res) => {
         reaction:val?.reaction,
         messageType:val?.messageType,
         post :val?.post,
-        replyVideo:val?.replyVideo? val.replyVideo : null,
+        // replyVideo:val?.replyVideo? val.replyVideo : null,
       };
     });
 
@@ -66,7 +66,7 @@ router.get("/:id", auth, async (req, res) => {
         reaction:user?.reaction,
         messageType:user?.messageType,
         post :user?.post,
-        replyVideo: user?.replyVideo? user.replyVideo : null,
+        // replyVideo: user?.replyVideo? user.replyVideo : null,
       };
     });
 

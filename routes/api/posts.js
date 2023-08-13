@@ -13,13 +13,17 @@ const sendFirebaseNotifications = require("../../middleware/notifications");
 const sendMultipleNotifications = require("../../middleware/notifications");
 const Notification = require("../../models/Notification");
 const Message = require("../../models/Message");
-const { storyreplyValidator } = require("../../utils/validators/messageValidator");
+const {
+  storyreplyValidator,
+} = require("../../utils/validators/messageValidator");
 
 // Create Post
 router.post("/", auth, async (req, res) => {
   const { text, postType, location, media, mimeType } = req.body;
   try {
-    const user = await User.findById(req.user.id).select("-password").populate('followers');
+    const user = await User.findById(req.user.id)
+      .select("-password")
+      .populate("followers");
     const newPost = new Post({
       text: text,
       user: req.user.id,
@@ -29,9 +33,9 @@ router.post("/", auth, async (req, res) => {
       mimeType: mimeType,
     });
     const post = await newPost.save();
-    var fcmTokens = user.followers?.map(val => {
-      return val.fcmToken
-    })
+    var fcmTokens = user.followers?.map((val) => {
+      return val.fcmToken;
+    });
     sendMultipleNotifications(
       `${user.firstName} Posted Just Now`,
       fcmTokens,
@@ -100,15 +104,116 @@ router.post("/video", auth, async (req, res) => {
 router.get("/", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
+    const savedPosts = user.savedPosts;
     // user: { $in: user.following },
-    const post = await Post.find({ postType: "Post", _id: { $nin: user.hiddenPost } })
+    const post = await Post.find({
+      postType: "Post",
+      _id: { $nin: user.hiddenPost },
+    })
       .sort({ date: -1 })
-      .populate("user")
+      .populate({
+        path: "user",
+        select: "-password",
+      })
       .populate({
         path: "comments.user",
         model: "user",
       });
-    return res.json({ post, status: 200 });
+    const postsWithSavedStatus = post.map((post) => ({
+      ...post.toObject(),
+      isSaved: savedPosts.includes(post._id.toString()),
+    }));
+    return res.json({ post: postsWithSavedStatus, status: 200 });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+// Get All Post
+router.get("/saved", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("+savedPosts");
+    const savedPosts = user.savedPosts;
+    const hiddenPosts = user.hiddenPost;
+    // user: { $in: user.following },
+    const post = await Post.find({
+      postType: "Post",
+      _id: { $in: savedPosts, $nin: hiddenPosts }
+    })
+      .sort({ date: -1 })
+      .populate({
+        path: "user",
+        select: "-password",
+      })
+      .populate({
+        path: "comments.user",
+        model: "user",
+      });
+    const postsWithSavedStatus = post.map((post) => ({
+      ...post.toObject(),
+      isSaved: savedPosts.includes(post._id.toString()),
+    }));
+    return res.json({ post: postsWithSavedStatus, status: 200 });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+// for test
+
+router.get("/test", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+
+    const posts = await Post.aggregate([
+      {
+        $match: {
+          postType: "Post",
+          _id: { $nin: user.hiddenPost },
+        },
+      },
+      {
+        $lookup: {
+          from: "users", // Assuming the users collection name
+          localField: "_id",
+          foreignField: "savedPosts",
+          as: "savedBy",
+        },
+      },
+      {
+        $addFields: {
+          isSaved: { $in: [user._id, "$savedBy"] },
+        },
+      },
+      {
+        $sort: { date: -1 },
+      },
+      {
+        $unset: "savedBy",
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: "$user",
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "comments.user",
+          foreignField: "_id",
+          as: "comments.user",
+        },
+      },
+    ]);
+
+    return res.json({ posts, status: 200 });
   } catch (err) {
     console.log(err.message);
     res.status(500).send("Server Error");
@@ -132,9 +237,10 @@ router.get("/user/:id", auth, async (req, res) => {
 
 // Get All Post
 router.get("/story", auth, async (req, res) => {
-  console.log(req.user)
+  console.log(req.user);
   try {
-    const post = await Post.find({ postType: "Story" }).sort({ date: -1 })
+    const post = await Post.find({ postType: "Story" })
+      .sort({ date: -1 })
       .populate("user");
     var totalRecords = [];
     var j = 0;
@@ -180,19 +286,24 @@ router.get("/story", auth, async (req, res) => {
   }
 });
 
-
 router.get("/stories", auth, async (req, res) => {
   try {
-    const userId = req.user.id; 
-    const allStories = await Post.find({ postType: "Story" }).sort({ date: -1 }).populate("user");
+    const userId = req.user.id;
+    const allStories = await Post.find({ postType: "Story" })
+      .sort({ date: -1 })
+      .populate("user");
 
-    const otherUserStories = allStories.filter((story) => story.user._id.toString() !== userId);
+    const otherUserStories = allStories.filter(
+      (story) => story.user._id.toString() !== userId
+    );
 
     var totalRecords = [];
     var j = 0;
     for (i = 0; i < otherUserStories.length; i++) {
-      console.log(totalRecords,"kkkkkk", i)
-      var index = totalRecords.findIndex((x) => x?.user_id == otherUserStories[i].user._id.toString());
+      console.log(totalRecords, "kkkkkk", i);
+      var index = totalRecords.findIndex(
+        (x) => x?.user_id == otherUserStories[i].user._id.toString()
+      );
 
       if (index > -1) {
         var story_id = otherUserStories[i]._id;
@@ -225,7 +336,9 @@ router.get("/stories", auth, async (req, res) => {
     }
 
     // Get stories of the login user
-    const userStories = await Post.find({ user: userId, postType: "Story" }).sort({ date: -1 }).select("_id media");
+    const userStories = await Post.find({ user: userId, postType: "Story" })
+      .sort({ date: -1 })
+      .select("_id media");
 
     const user = await User.findById(userId);
     if (!user) {
@@ -241,39 +354,33 @@ router.get("/stories", auth, async (req, res) => {
       stories: userStories,
     };
 
-    return res.json({  user_data: userData, otherStories : totalRecords });
+    return res.json({ user_data: userData, otherStories: totalRecords });
   } catch (err) {
-    console.log(err.message , "fetching stories");
-    res.status(500).send({message : "Server Error" , success : false });
+    console.log(err.message, "fetching stories");
+    res.status(500).send({ message: "Server Error", success: false });
   }
 });
 
-router.post ("/storyreply" ,auth , storyreplyValidator , async(req,res)=>{
-  const loggedInUserId = req.user?.id
+router.post("/storyreply", auth, storyreplyValidator, async (req, res) => {
+  const loggedInUserId = req.user?.id;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.errors[0].msg, success: false });
+    return res
+      .status(400)
+      .json({ errors: errors.errors[0].msg, success: false });
   }
-  const {
-    roomId,
-    reciver,
-    text,
-    messageType,
-    reaction,
-    postId,
-    replyVideo
-  } = req.body;
+  const { roomId, reciver, text, messageType, reaction, postId, replyVideo } = req.body;
 
   try {
     const newMessage = new Message({
       roomId: roomId,
       sender: loggedInUserId,
       reciever: reciver,
-      message: text ? text : null ,
-      reaction: reaction ? reaction : null ,
+      message: text ? text : null,
+      reaction: reaction ? reaction : null,
       messageType: messageType ? messageType : null,
-      post : postId,
-      replyVideo: replyVideo? replyVideo: null
+      post: postId,
+      replyVideo: replyVideo ? replyVideo : null,
     });
     // const recUser = await User.findById(reciver);
     // const sendingUser = await User.findById(user);
@@ -287,12 +394,12 @@ router.post ("/storyreply" ,auth , storyreplyValidator , async(req,res)=>{
     //     "chat"
     //   );
     // }
-    res.status(200).json({newMessage , status:200 , success:true})
+    res.status(200).json({ newMessage, status: 200, success: true });
   } catch (error) {
     console.log(err.message);
     res.status(500).send("Server Error");
   }
-})
+});
 
 // Get Post By Id
 router.get("/:id", auth, async (req, res) => {
@@ -365,6 +472,43 @@ router.put("/like/:id", auth, async (req, res) => {
   }
 });
 
+//save post
+router.put("/save/:id", auth, async (req, res) => {
+  const postId = req.params.id;
+  const loggedInUserId = req.user?.id;
+  try {
+    const post = await Post.findById(postId);
+    const user = await User.findById(loggedInUserId).select("+savedPosts");
+    console.log(user, "user");
+    if (!post) {
+      return res.status(404).json({ msg: "Post not found", success: false });
+    }
+
+    const isSaved = user.savedPosts.includes(post._id);
+
+    if (isSaved) {
+      // Unsave the post
+      user.savedPosts.pull(post._id);
+    } else {
+      // Save the post
+      user.savedPosts.push(post._id);
+    }
+
+    await user.save();
+
+    return res
+      .status(201)
+      .json({
+        msg: isSaved ? "Post unsaved" : "Post saved",
+        status: 200,
+        success: true,
+      });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ msg: "Server Error", error: err.message });
+  }
+});
+
 // Add Comment
 router.post(
   "/comment/:id",
@@ -410,13 +554,15 @@ router.post(
 // Get Post Comment By Id
 router.get("/comment/:id", auth, async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id).populate({
-      path: "comments.user",
-      model: "user",
-    }).populate({
-      path: "comments.replies.user",
-      model: "user"
-    });
+    const post = await Post.findById(req.params.id)
+      .populate({
+        path: "comments.user",
+        model: "user",
+      })
+      .populate({
+        path: "comments.replies.user",
+        model: "user",
+      });
     if (!post) {
       return res.status(404).json({ msg: "Post not found" });
     }
@@ -477,10 +623,8 @@ router.post(
         }
       });
 
-
       await post.save();
-      return res.json({ post, status: 200 })
-
+      return res.json({ post, status: 200 });
     } catch (err) {
       console.log(err.message);
       res.status(500).send("Server Error");
