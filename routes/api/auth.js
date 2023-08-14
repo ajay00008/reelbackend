@@ -43,10 +43,20 @@ aws.config.update({
 });
 
 let S3 = new aws.S3();
+const { PhoneNumberUtil } = require('google-libphonenumber');
+const phoneUtil = PhoneNumberUtil.getInstance();
 
 // const S3 = new aws.S3({});
 
 // categ
+function isValidPhoneNumberForCountry(phoneNumber, expectedCountry) {
+  try {
+    const parsedNumber = phoneUtil.parseAndKeepRawInput(phoneNumber, expectedCountry);
+    return phoneUtil.isValidNumberForRegion(parsedNumber, expectedCountry);
+  } catch (error) {
+    return false;
+  }
+}
 
 router.post("/image",
   // multerUploadInMemory.single("image"),
@@ -274,9 +284,14 @@ router.post("/signup", signupValidator, async (req, res) => {
     profileType,
     phone,
     category,
+    countryCode
   } = req.body;
 
   try {
+    const isValidPhone = isValidPhoneNumberForCountry(phone, countryCode)
+    if(!isValidPhone){
+      return res.status(422).json({message:"invalid phone number" , success:false , error:"wrong phone number"})
+    }
     const userCount = await User.find().count();
     let user = await User.findOne({ email });
     let checkUsername = await User.findOne({ username });
@@ -291,6 +306,7 @@ router.post("/signup", signupValidator, async (req, res) => {
         .status(400)
         .json({ errors:"username already exist" , success:false });
     }
+
     let newUser;
     if (profileType === "personal") {
       newUser = new User({

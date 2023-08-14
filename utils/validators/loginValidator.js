@@ -21,6 +21,7 @@ const personalSchema = [
     body('category').notEmpty().withMessage('category is required').isMongoId().withMessage('category should be a valid category ID'),
     body('phone').isLength({ min: 8 }).withMessage('Phone must be at least 10 characters long').isNumeric()
     .withMessage('Phone must contain only digits'),
+    body('countryCode').notEmpty().withMessage('countryCode is required'),
     body('firstName').notEmpty().withMessage('firstName is required'),
     body('username').notEmpty().withMessage('firstName is required'),
     check("password", "Password is required").notEmpty(),
