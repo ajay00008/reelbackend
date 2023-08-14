@@ -16,6 +16,8 @@ const Message = require("../../models/Message");
 const {
   storyreplyValidator,
 } = require("../../utils/validators/messageValidator");
+const {Types} = require('mongoose');
+
 
 // Create Post
 router.post("/", auth, async (req, res) => {
@@ -248,6 +250,10 @@ router.get("/story", auth, async (req, res) => {
     var totalRecords = [];
     var j = 0;
     for (i = 0; i < post.length; i++) {
+
+      // if(post[i].user ===null){
+      //   continue;
+      // }
       var index = totalRecords.findIndex(
         (x) => x?.user_id == post[i].user?._id
       );
@@ -343,9 +349,24 @@ router.get("/stories", auth, async (req, res) => {
     }
 
     // Get stories of the login user
-    const userStories = await Post.find({ user: userId, postType: "Story" })
-      .sort({ date: -1 })
-      .select("_id media");
+    const userStories = await Post.aggregate([
+        { $match: { user:new Types.ObjectId(userId), postType: "Story" } },
+        { $sort: { date: -1 } },
+        {
+          $addFields: {
+            story_id: "$_id",
+            story_image: "$media"
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            story_id: 1,
+            story_image: 1
+          }
+        }
+      ]);
+      
 
     const user = await User.findById(userId);
     if (!user) {
@@ -361,7 +382,7 @@ router.get("/stories", auth, async (req, res) => {
       stories: userStories,
     };
 
-    return res.json({ user_data: userData, otherStories: totalRecords });
+    return res.json({ user_data: userData, otherStories: totalRecords});
     // return res.json({ allStories , otherUserStories });
   } catch (err) {
     console.log(err.message, "fetching stories");
