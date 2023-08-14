@@ -183,9 +183,7 @@ router.put("/", async (req, res) => {
     const profileType = userInfo.profileType;
     if (profileType === "business") {
       if (members.length > 20) {
-        return res
-          .status(200)
-          .json({
+        return res.status(200).json({
             success: false,
             errors: "business users can't  add more than 20 members",
             message: "members limit reached",

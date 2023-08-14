@@ -108,12 +108,14 @@ router.get("/", auth, async (req, res) => {
     const user = await User.findById(req.user.id).select(
       "-password +savedPosts"
     );
+    // console.log(user)
     const savedPosts = user.savedPosts;
     // console.log(savedPosts ,"savv", user)
     // user: { $in: user.following },
     const post = await Post.find({
       postType: "Post",
       _id: { $nin: user.hiddenPost },
+      user:{$nin :user.blockedUsers}
     })
       .sort({ date: -1 })
       .populate({
