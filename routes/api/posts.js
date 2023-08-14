@@ -300,8 +300,12 @@ router.get("/story", auth, async (req, res) => {
 router.get("/stories", auth, async (req, res) => {
   try {
     const userId = req.user.id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
     // console.log(userId)
-    const allStories = await Post.find({ postType: "Story" })
+    const allStories = await Post.find({ postType: "Story"   ,  user:{$nin :user.blockedUsers} })
       .sort({ date: -1 })
       .populate("user");
     // console.log(allStories, "all");
@@ -369,11 +373,6 @@ router.get("/stories", auth, async (req, res) => {
         }
       ]);
       
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
 
     const userData = {
       user_id: user._id,
