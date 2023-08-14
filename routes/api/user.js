@@ -12,6 +12,7 @@ const Notification = require("../../models/Notification");
 const { Configuration, OpenAIApi } = require("openai");
 const Posts = require("../../models/Posts");
 const Art = require("../../models/Art");
+// console.log(process.env)
 const configuration = new Configuration({
   apiKey:process.env.OPENAI_API_KEY,
 });
