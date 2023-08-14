@@ -103,7 +103,9 @@ router.post("/video", auth, async (req, res) => {
 // Get All Post
 router.get("/", auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password +savedPosts");
+    const user = await User.findById(req.user.id).select(
+      "-password +savedPosts"
+    );
     const savedPosts = user.savedPosts;
     // console.log(savedPosts ,"savv", user)
     // user: { $in: user.following },
@@ -140,7 +142,7 @@ router.get("/saved", auth, async (req, res) => {
     // user: { $in: user.following },
     const post = await Post.find({
       postType: "Post",
-      _id: { $in: savedPosts, $nin: hiddenPosts }
+      _id: { $in: savedPosts, $nin: hiddenPosts },
     })
       .sort({ date: -1 })
       .populate({
@@ -290,18 +292,22 @@ router.get("/story", auth, async (req, res) => {
 router.get("/stories", auth, async (req, res) => {
   try {
     const userId = req.user.id;
+    // console.log(userId)
     const allStories = await Post.find({ postType: "Story" })
       .sort({ date: -1 })
       .populate("user");
-
-    const otherUserStories = allStories.filter(
-      (story) => story.user._id.toString() !== userId
-    );
+    // console.log(allStories, "all");
+    const otherUserStories = allStories.filter((story) => {
+      if(story.user ===null){
+        return;
+      }
+     return  story.user?._id.toString() !== userId;
+    });
 
     var totalRecords = [];
     var j = 0;
     for (i = 0; i < otherUserStories.length; i++) {
-      console.log(totalRecords, "kkkkkk", i);
+      // console.log(totalRecords, "kkkkkk", i);
       var index = totalRecords.findIndex(
         (x) => x?.user_id == otherUserStories[i].user._id.toString()
       );
@@ -356,6 +362,7 @@ router.get("/stories", auth, async (req, res) => {
     };
 
     return res.json({ user_data: userData, otherStories: totalRecords });
+    // return res.json({ allStories , otherUserStories });
   } catch (err) {
     console.log(err.message, "fetching stories");
     res.status(500).send({ message: "Server Error", success: false });
@@ -370,7 +377,8 @@ router.post("/storyreply", auth, storyreplyValidator, async (req, res) => {
       .status(400)
       .json({ errors: errors.errors[0].msg, success: false });
   }
-  const { roomId, reciver, text, messageType, reaction, postId, replyVideo } = req.body;
+  const { roomId, reciver, text, messageType, reaction, postId, replyVideo } =
+    req.body;
 
   try {
     const newMessage = new Message({
@@ -497,13 +505,11 @@ router.put("/save/:id", auth, async (req, res) => {
 
     await user.save();
 
-    return res
-      .status(201)
-      .json({
-        msg: isSaved ? "Post unsaved" : "Post saved",
-        status: 200,
-        success: true,
-      });
+    return res.status(201).json({
+      msg: isSaved ? "Post unsaved" : "Post saved",
+      status: 200,
+      success: true,
+    });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error", error: err.message });
