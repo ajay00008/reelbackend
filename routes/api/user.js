@@ -260,39 +260,47 @@ router.get('/actions/blocked', auth, async (req, res) => {
 
 
 router.put('/actions/block/:id', auth, async (req, res) => {
-  const loggedInUserId = req.user?.id
-  const {id} = req.params
+  const loggedInUserId = req.user?.id;
+  const { id } = req.params;
+
   try {
     const user = await User.findById(loggedInUserId);
     const userToBlock = await User.findById(id);
-
+      //  console.log(user ,"s", userToBlock)   
     if (!userToBlock) {
       return res.status(404).json({ msg: 'User not found' });
     }
 
-    if (userToBlock._id.toString() === user._id.toString()) {
+    if (userToBlock._id.equals(user._id)) {
       return res.status(400).json({ msg: 'You cannot block/unblock yourself' });
     }
 
     const isBlocked = user.blockedUsers.includes(userToBlock._id);
+    const hasBlockedBy = userToBlock.blockedBy.includes(user._id);
 
-    if (isBlocked) {
-      // User is blocked, unblock them
+    if (hasBlockedBy) {
+      // Unblock the user
+      userToBlock.blockedBy.pull(user._id);
+    } else if (isBlocked) {
+      // Unblocking the user
       user.blockedUsers.pull(userToBlock._id);
     } else {
-      // User is not blocked, block them
+      // Blocking the user
       user.blockedUsers.push(userToBlock._id);
+      userToBlock.blockedBy.push(user._id);
     }
 
     await user.save();
+    await userToBlock.save();
 
-    const action = isBlocked ? 'unblocked' : 'blocked';
+    const action = hasBlockedBy ? 'unblocked' : (isBlocked ? 'unblocked' : 'blocked');
     return res.json({ msg: `User ${action} successfully`, status: 200 });
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({message: 'Server Error' , error:err?.message});
+    res.status(500).json({ msg: 'Server Error', error: err?.message });
   }
 });
+
 
 
 module.exports = router;

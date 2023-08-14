@@ -108,16 +108,17 @@ router.get("/", auth, async (req, res) => {
     const user = await User.findById(req.user.id).select(
       "-password +savedPosts"
     );
-    // console.log(user)
+   
     const savedPosts = user.savedPosts;
+    const blockedUserIds = user.blockedUsers;
+    const blockedBy = user?.blockedBy
     // console.log(savedPosts ,"savv", user)
     // user: { $in: user.following },
     const post = await Post.find({
       postType: "Post",
       _id: { $nin: user.hiddenPost },
-      user:{$nin :user.blockedUsers}
-    })
-      .sort({ date: -1 })
+      user:{$nin :[...blockedUserIds, ...blockedBy]}
+    }).sort({ date: -1 })
       .populate({
         path: "user",
         select: "-password",
@@ -304,8 +305,12 @@ router.get("/stories", auth, async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    const blockedUserIds = user?.blockedUsers
+    const blockedBy = user?.blockedBy
     // console.log(userId)
-    const allStories = await Post.find({ postType: "Story"   ,  user:{$nin :user.blockedUsers} })
+    const allStories = await Post.find({ postType: "Story" ,  
+    user:{$nin :[...blockedUserIds, ...blockedBy]}
+  })
       .sort({ date: -1 })
       .populate("user");
     // console.log(allStories, "all");

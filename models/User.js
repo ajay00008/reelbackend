@@ -119,6 +119,12 @@ const UserSchema = new mongoose.Schema({
             ref:'user'
         }
     ],
+    blockedBy:[
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref:'user'
+        }
+    ],
 })
 
 module.exports = User = mongoose.model('user', UserSchema)
