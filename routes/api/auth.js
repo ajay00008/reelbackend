@@ -205,6 +205,7 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ message: "Server error", success: false });
   }
 });
+
 // signUp(ThreeStep)
 // 1:
 router.post("/signup", signupValidator, async (req, res) => {
@@ -366,25 +367,56 @@ router.post("/verifymail", otpValidator, async (req, res) => {
     const currentTime = new Date();
     if (!otpData || currentTime > otpData.expiresAt) {
       return res.status(401).json({
-        message: "OTP has expired please request new otp",
+        errors:"Expire Otp",
+        msg: "OTP has expired please request new otp",
         success: false,
       });
     }
     const otpMatch = await verifyOTP(otp, otpData.otp);
     if (!otpMatch) {
-      return res.status(401).json({ message: "Invalid OTP" });
+      return res.status(401).json({ msg: "Invalid OTP"  ,  errors:"invalid Otp", success:false});
     }
     const user = await User.findOne({
       email: { $regex: new RegExp(email, "i") },
     });
-    user.isVerified = true;
+    user.isVerified = true;  
     await user.save();
     await Otp.deleteOne({ email });
-    return res
-      .status(200)
-      .json({ message: "user email verified successfully", success: true });
+    // console.log(user)
+    const payLoad = {
+      user: {
+        id: user?._id,
+      },
+    };
+
+    try {
+      const token = await new Promise((resolve, reject) => {
+        jwt.sign(
+          payLoad,
+          "mysecrettoken",
+          { expiresIn: 36000000 },
+          (err, token) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(token);
+            }
+          }
+        );
+      });
+      return res.status(200).json({
+        token,
+        status: 200,
+        msg: "User email verified successfully",
+        user,
+        success: true,
+      });
+    } catch (err) {
+      return res.status(422)
+        .json({ msg: "jwt err", success: false, errors: "jwt error" });
+    }
   } catch (error) {
-    res.status(500).json({ message: "Server error", success: false });
+    res.status(500).json({ msg: "Server error", success: false });
   }
 });
 
