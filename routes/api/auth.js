@@ -234,12 +234,10 @@ router.post("/signup", signupValidator, async (req, res) => {
     // console.log(user, checkUsername);
 
     if (user) {
-      return res
-        .status(400)
+      return res.status(400)
         .json({ success: false, errors: "User email already exists" });
     } else if (checkUsername) {
-      return res
-        .status(400)
+      return res.status(400)
         .json({ errors: "username already exist", success: false });
     }
 
@@ -347,7 +345,14 @@ router.post("/sendverifymail", async (req, res) => {
     if(!user){
       return res.status(200).json({msg:"no registered account found" , success:false})
     }
-    const { success, message } = await emailVerify(email);
+    const { success, message , otp , expiresAt } = await emailVerify(email);
+    await Otp.updateOne(
+      { email },
+      { $set: { otp, expiresAt } },
+      { upsert: true }
+    ).catch((err) => {
+      console.log(err, "in adding otp in db");
+    });
     return res.status(!success ? 422 : 201)
       .json({ msg: "user registered successfully", success, message });
   } catch (error) {
@@ -363,7 +368,8 @@ router.post("/verifymail", otpValidator, async (req, res) => {
   }
   const { otp, email } = req.body;
   try {
-    const otpData = await Otp.findOne({ email });
+    const otpData = await Otp.findOne({ email }).sort({createdAt:-1});
+    // console.log(otpData)
     const currentTime = new Date();
     if (!otpData || currentTime > otpData.expiresAt) {
       return res.status(401).json({
@@ -381,14 +387,12 @@ router.post("/verifymail", otpValidator, async (req, res) => {
     });
     user.isVerified = true;  
     await user.save();
-    await Otp.deleteOne({ email });
-    // console.log(user)
     const payLoad = {
       user: {
         id: user?._id,
       },
     };
-
+    
     try {
       const token = await new Promise((resolve, reject) => {
         jwt.sign(
@@ -402,9 +406,12 @@ router.post("/verifymail", otpValidator, async (req, res) => {
               resolve(token);
             }
           }
-        );
-      });
-      return res.status(200).json({
+          );
+        });
+        if(token){
+          await Otp.deleteOne({ email });
+        }
+        return res.status(200).json({
         token,
         status: 200,
         msg: "User email verified successfully",
