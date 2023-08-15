@@ -288,10 +288,12 @@ router.post("/signup", signupValidator, async (req, res) => {
   } = req.body;
 
   try {
-    const isValidPhone = isValidPhoneNumberForCountry(phone, countryCode)
-    if(!isValidPhone){
-      return res.status(422).json({message:"invalid phone number" , success:false , error:"wrong phone number"})
-    }
+    if(phone){
+       const isValidPhone = isValidPhoneNumberForCountry(phone, countryCode)
+       if(!isValidPhone){
+       return res.status(422).json({message:"invalid phone number" , success:false , error:"wrong phone number"})
+      }
+   }
     const userCount = await User.find().count();
     let user = await User.findOne({ email });
     let checkUsername = await User.findOne({ username });
