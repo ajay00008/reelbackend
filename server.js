@@ -42,7 +42,7 @@ app.use("media/image", express.static("image"));
 app.use("media/video", express.static("image"));
 
 app.get("/", (req, res) => {
-  res.send("API Runnin successfully-pipelinedone");
+  res.send("API Runnin successfully-pipelinedones");
 });
 
 app.get("/media/image/:name", (req, res) => {
