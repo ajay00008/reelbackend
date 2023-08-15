@@ -342,6 +342,10 @@ router.post("/sendverifymail", async (req, res) => {
     return res.status(422).json({ msg: "email is required" });
   }
   try {
+    let user = await User.findOne({ email });
+    if(!user){
+      return res.status(200).json({msg:"no registered account found" , success:false})
+    }
     const { success, message } = await emailVerify(email);
     return res.status(!success ? 422 : 201)
       .json({ msg: "user registered successfully", success, message });
