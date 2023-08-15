@@ -354,7 +354,7 @@ router.post("/sendverifymail", async (req, res) => {
       console.log(err, "in adding otp in db");
     });
     return res.status(!success ? 422 : 201)
-      .json({ msg: "user registered successfully", success, message });
+      .json({ msg: "email sent successfully", success, message });
   } catch (error) {
     res.status(500).json({ msg: "Server error", success: false });
   }
