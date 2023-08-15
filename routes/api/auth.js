@@ -260,9 +260,9 @@ router.post("/signup", signupValidator, async (req, res) => {
       const isValidPhone = isValidPhoneNumberForCountry(phone, countryCode);
       if (!isValidPhone) {
         return res.status(422).json({
-            message: "invalid phone number",
+            msg: "invalid phone number",
             success: false,
-            error: "wrong phone number",
+            errors: "wrong phone number",
           });
         }
       newUser = new User({
