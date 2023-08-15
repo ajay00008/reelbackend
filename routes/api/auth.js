@@ -34,7 +34,7 @@ const multerUploadInMemory = multer({
 });
 
 aws.config.update({
-  useAccelerateEndpoint:true,
+  useAccelerateEndpoint: true,
   credentials: {
     accessKeyId: "AKIAXKJA67ZDLQXTQDET",
     secretAccessKey: "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",
@@ -43,7 +43,7 @@ aws.config.update({
 });
 
 let S3 = new aws.S3();
-const { PhoneNumberUtil } = require('google-libphonenumber');
+const { PhoneNumberUtil } = require("google-libphonenumber");
 const phoneUtil = PhoneNumberUtil.getInstance();
 
 // const S3 = new aws.S3({});
@@ -51,14 +51,18 @@ const phoneUtil = PhoneNumberUtil.getInstance();
 // categ
 function isValidPhoneNumberForCountry(phoneNumber, expectedCountry) {
   try {
-    const parsedNumber = phoneUtil.parseAndKeepRawInput(phoneNumber, expectedCountry);
+    const parsedNumber = phoneUtil.parseAndKeepRawInput(
+      phoneNumber,
+      expectedCountry
+    );
     return phoneUtil.isValidNumberForRegion(parsedNumber, expectedCountry);
   } catch (error) {
     return false;
   }
 }
 
-router.post("/image",
+router.post(
+  "/image",
   // multerUploadInMemory.single("image"),
   async (req, res) => {
     try {
@@ -69,7 +73,7 @@ router.post("/image",
         ACL: "public-read",
         ContentType: req.file.mimetype,
       });
-      res.status(200).json({uploadResult})
+      res.status(200).json({ uploadResult });
     } catch (error) {
       console.log(error.message);
       res.status(500).send("Server Errro");
@@ -171,10 +175,9 @@ router.post("/login", async (req, res) => {
         .json({ errors: { msg: "Invalid email or username", success: false } });
     }
 
-    // if(user.isVerified===false){
-    //   return res.status(422).message({message:'please verified your email address', success:false })
-    // }
-
+    if(user.isVerified===false){
+      return res.status(422).json({msg:'please verified your email address', success:false })
+    }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res
@@ -202,78 +205,14 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ message: "Server error", success: false });
   }
 });
-
-//REGISTER
-// router.post(
-//   "/register",
-//   multerUploadInMemory.single("image"),
-//   async (req, res) => {
-//     const { email, password, firstName, lastName, gender, username } = req.body;
-//     try {
-//       var userCount = await User.find().count();
-//       let user = await User.findOne({ email });
-//       let checkUsername = await User.findOne({ username });
-//       if (user) {
-//         return res
-//           .status(400)
-//           .json({ errors: [{ msg: "User already exist" }] });
-//       } else if (checkUsername) {
-//         return res
-//           .status(400)
-//           .json({ errors: [{ msg: "Username already exist" }] });
-//       } else {
-//         // const uploadResult = await S3.upload({
-//         //   Bucket: "reelmails",
-//         //   Key: req.file.originalname,
-//         //   Body: req.file.buffer,
-//         //   ACL: "public-read",
-//         //   ContentType: req.file.mimetype,
-//         // }).promise();
-
-//         // if(uploadResult) {
-//         user = new User({
-//           email,
-//           password,
-//           firstName,
-//           lastName,
-//           username,
-//           profile_no: userCount + 1,
-//         });
-
-//         const salt = await bcrypt.genSalt(10);
-//         user.password = await bcrypt.hash(password, salt);
-//         await user.save();
-//         const payLoad = {
-//           user: {
-//             id: user.id,
-//           },
-//         };
-//         jwt.sign(
-//           payLoad,
-//           "mysecrettoken",
-//           { expiresIn: 36000000 },
-//           (err, token) => {
-//             if (err) {
-//               throw err;
-//             }
-//             res.json({ token, status: 200, msg: "User Registered", user });
-//           }
-//         );
-//         // } else {
-//         //   res.status(500).send("Server error");
-//         // }
-//       }
-//     } catch (err) {
-//       console.log(err.message);
-//       res.status(500).send("Server error");
-//     }
-//   }
-// );
-
+// signUp(ThreeStep)
+// 1:
 router.post("/signup", signupValidator, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.errors[0].msg , success : false});
+    return res
+      .status(400)
+      .json({ errors: errors.errors[0].msg, success: false });
   }
   const {
     email,
@@ -284,16 +223,10 @@ router.post("/signup", signupValidator, async (req, res) => {
     profileType,
     phone,
     category,
-    countryCode
+    countryCode,
   } = req.body;
 
   try {
-    if(phone){
-       const isValidPhone = isValidPhoneNumberForCountry(phone, countryCode)
-       if(!isValidPhone){
-       return res.status(422).json({message:"invalid phone number" , success:false , error:"wrong phone number"})
-      }
-   }
     const userCount = await User.find().count();
     let user = await User.findOne({ email });
     let checkUsername = await User.findOne({ username });
@@ -302,11 +235,11 @@ router.post("/signup", signupValidator, async (req, res) => {
     if (user) {
       return res
         .status(400)
-        .json({ success:false , errors: "User email already exists"});
+        .json({ success: false, errors: "User email already exists" });
     } else if (checkUsername) {
       return res
         .status(400)
-        .json({ errors:"username already exist" , success:false });
+        .json({ errors: "username already exist", success: false });
     }
 
     let newUser;
@@ -319,11 +252,19 @@ router.post("/signup", signupValidator, async (req, res) => {
         username,
         profileType,
         profile_no: userCount + 1,
-        subscriptionType:{
-          reelCoin:20
-        }
+        subscriptionType: {
+          reelCoin: 20,
+        },
       });
     } else {
+      const isValidPhone = isValidPhoneNumberForCountry(phone, countryCode);
+      if (!isValidPhone) {
+        return res.status(422).json({
+            message: "invalid phone number",
+            success: false,
+            error: "wrong phone number",
+          });
+        }
       newUser = new User({
         phone,
         profileType,
@@ -332,73 +273,85 @@ router.post("/signup", signupValidator, async (req, res) => {
         username,
         email,
         profile_no: userCount + 1,
-        subscriptionType:{
-          reelCoin:50
-        }
+        subscriptionType: {
+          reelCoin: 50,
+        },
       });
     }
     const salt = await bcrypt.genSalt(10);
     newUser.password = await bcrypt.hash(password, salt);
     await newUser.save();
-    // const { success, message, otp, expiresAt } = await emailVerify(email);
-    // if (success !== true) {
-    //   res.status(500).json({ message: "Server error", success: false });
-    // }
-    // const data = await Otp.updateOne(
-    //   { email },
-    //   { $set: { otp, expiresAt } },
-    //   { upsert: true }
-    // ).catch((err) => {
-    //   console.log(err, "in adding otp in db");
-    // });
+    const { success, message, otp, expiresAt } = await emailVerify(email);
+    if (success !== true) {
+      res.status(500).json({ message: "Server error", success: false });
+    }
+    await Otp.updateOne(
+      { email },
+      { $set: { otp, expiresAt } },
+      { upsert: true }
+    ).catch((err) => {
+      console.log(err, "in adding otp in db");
+    });
 
-    const payLoad = {
-      user: {
-        id: newUser.id,
-      },
-    };
-    jwt.sign(
-      payLoad,
-      "mysecrettoken",
-      { expiresIn: 36000000 },
-      (err, token) => {
-        if (err) {
-          // throw err;
-        return  res.status(422).json({message:"jwt err",success:false , errors:"jwt error"})
-        }
-       return  res.status(200).json({ token, status: 200, msg: "User Registered", newUser , success:true });
-      }
-    );
+    // const payLoad = {
+    //   user: {
+    //     id: newUser.id,
+    //   },
+    // };
+    // jwt.sign(
+    //   payLoad,
+    //   "mysecrettoken",
+    //   { expiresIn: 36000000 },
+    //   (err, token) => {
+    //     if (err) {
+    //       // throw err;
+    //       return res
+    //         .status(422)
+    //         .json({ message: "jwt err", success: false, errors: "jwt error" });
+    //     }
+    //     return res
+    //       .status(200)
+    //       .json({
+    //         token,
+    //         status: 200,
+    //         msg: "User Registered",
+    //         newUser,
+    //         success: true,
+    //       });
+    //   }
+    // );
     // console.log(success, message);
-    // return res
-    //   .status(!success ? 422 : 201)
-    //   .json({
-    //     message: "user registered successfully",
-    //     success: true,
-    //     newUser,
-    //   });
+    return res.status(!success ? 422 : 201)
+      .json({
+        msg: "user registered successfully",
+        status:200,
+        success: true,
+        newUser,
+        msg:message
+      });
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ message: "Server error", success: false });
   }
 });
 
-router.post("/verifyemail", async (req, res) => {
+// 2:
+router.post("/sendverifymail", async (req, res) => {
   const { email } = req.body;
   if (!email) {
-    return res.status(422).json({ message: "email is required" });
+    return res.status(422).json({ msg: "email is required" });
   }
   try {
     const { success, message } = await emailVerify(email);
-    return res
-      .status(!success ? 422 : 201)
-      .json({ message: "user registered successfully", success, message });
+    return res.status(!success ? 422 : 201)
+      .json({ msg: "user registered successfully", success, message });
   } catch (error) {
-    res.status(500).json({ message: "Server error", success: false });
+    res.status(500).json({ msg: "Server error", success: false });
   }
 });
 
-router.post("/emailotpverify", otpValidator, async (req, res) => {
+// 3 last:
+router.post("/verifymail", otpValidator, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.errors[0].msg });
@@ -421,7 +374,7 @@ router.post("/emailotpverify", otpValidator, async (req, res) => {
       email: { $regex: new RegExp(email, "i") },
     });
     user.isVerified = true;
-    const resp = await user.save();
+    await user.save();
     await Otp.deleteOne({ email });
     return res
       .status(200)
@@ -553,7 +506,7 @@ router.post("/forgot", emailValidator, async (req, res) => {
         { upsert: true }
       );
       console.log(result, "result");
-    
+
       return res.status(200).json({
         success: true,
         message: `OTP sent to your email address ${email}. Please check your inbox.`,
@@ -565,7 +518,7 @@ router.post("/forgot", emailValidator, async (req, res) => {
         message: "An error occurred while updating OTP.",
       });
     }
-    
+
     console.log(result, "result");
     return res.status(200).json({
       success: true,
