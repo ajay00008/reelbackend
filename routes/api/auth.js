@@ -408,7 +408,7 @@ router.post("/verifymail", otpValidator, async (req, res) => {
         token,
         status: 200,
         msg: "User email verified successfully",
-        user,
+        newUser: user,
         success: true,
       });
     } catch (err) {
