@@ -9,7 +9,8 @@ const UserSchema = new mongoose.Schema({
     username: {
         type:String,
         required:true,
-        unqiue:true
+        unqiue:true,
+        trim:true
     },
     phone:{
         type:Number,
@@ -24,7 +25,8 @@ const UserSchema = new mongoose.Schema({
     },
     firstName: {
         type: String,
-        required: true
+        required: true,
+        trim:true
     },
     profile_no: {
         type: Number
