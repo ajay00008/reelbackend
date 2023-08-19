@@ -74,23 +74,6 @@ router.post("/follow/:id", auth, async (req, res) => {
 
 //Unfollow Users
 router.post("/unfollow/:id", auth, async (req, res) => {
-  try {
-    const followerUser = await User.findById(req.params.id).select("-password");
-    const followingUser = await User.findById(req.user.id).select("-password");
-    var index = followingUser.following.indexOf(req.params.id);
-    followingUser.following.splice(index, 1);
-    await followingUser.save();
-    var index = followerUser.followers.indexOf(req.user.id);
-    followerUser.followers.splice(index, 1);
-    await followerUser.save();
-    return res.json({ status: 200, msg: "Unfollowed" });
-  } catch (err) {
-    console.log(err.message);
-    res.status(500).send("Server Error");
-  }
-});
-
-router.post("/unfollow/:id", auth, async (req, res) => {
   const loggedInUserId = req.user?.id
   try {
     const followerUser = await User.findById(req.params.id).select("-password");
