@@ -42,7 +42,7 @@ app.use("media/image", express.static("image"));
 app.use("media/video", express.static("image"));
 
 app.get("/", (req, res) => {
-  res.send("API Running successfully-pipelinedone 2");
+  res.send("API Running successfully-pipelinedone 0");
 });
 
 app.get("/media/image/:name", (req, res) => {
@@ -67,6 +67,10 @@ app.use("/api/subscription", require("./routes/api/subscription"));
 app.use("/api/chats", require("./routes/api/chats"));
 app.use("/api/groups", auth, require("./routes/api/group"));
 app.use("/api/chatmessages", auth, require("./routes/api/chatMessage"));
+
+app.use('*', (req, res) => {
+  res.status(404).json({ message: 'Route not found in reelTok Backend' });
+});
 
 
 const server = app.listen(PORT, () => {

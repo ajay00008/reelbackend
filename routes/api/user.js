@@ -90,6 +90,31 @@ router.post("/unfollow/:id", auth, async (req, res) => {
   }
 });
 
+router.post("/unfollow/:id", auth, async (req, res) => {
+  const loggedInUserId = req.user?.id
+  try {
+    const followerUser = await User.findById(req.params.id).select("-password");
+    const followingUser = await User.findById(req.user.id).select("-password");
+    var index = followingUser.following.indexOf(req.params.id);
+    followingUser.following.splice(index, 1);
+    await followingUser.save();
+    var index = followerUser.followers.indexOf(req.user.id);
+    followerUser.followers.splice(index, 1);
+    await followerUser.save();
+    const oldNotification = await Notification.findOne({
+      user: req.params.id,
+      otherUser: loggedInUserId,
+      type:"profile"
+     })
+     if(oldNotification){
+      await Notification.findByIdAndDelete(oldNotification?._id)
+     }
+    return res.json({ status: 200, msg: "Unfollowed" });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+});
 
 //Update User Details
 router.post('/update', auth, async (req, res) => {
@@ -247,7 +272,10 @@ router.post('/art/generate', async (req, res) => {
 router.get('/actions/blocked', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-
+  console.log(user ,"user")
+    if(!user){
+      return res.status(200).json({msg:"user not found" ,error:'unknown user', succes:false })
+    }
     const blockedUsers = await User.find({
       _id: { $in: user.blockedUsers }
     }).select('-password -blockedUsers');
