@@ -468,13 +468,16 @@ router.delete("/:id", auth, async (req, res) => {
 
 // Like Post
 router.put("/like/:id", auth, async (req, res) => {
+  const loggedInUserId =req.user?.id
   try {
-    var notificationUsers = [];
     const post = await Post.findById(req.params.id).populate("user").populate({
       path: "comments.user",
       model: "user",
     });
     const user = await User.findById(req.user.id).select("-password");
+    if(!post || !user){
+      return res.status(404).json({error:'unknown user or post' , msg :`${!post ? 'user':'post'} not found`})
+    }
     if (
       post.likes.filter((like) => like.user.toString() == req.user.id).length >
       0
@@ -482,6 +485,15 @@ router.put("/like/:id", auth, async (req, res) => {
       var index = post.likes.indexOf(req.user.id);
       post.likes.splice(index, 1);
       await post.save();
+      const oldNotification = await Notification.findOne({
+        post: post?._id,
+        user: post?.user?._id,
+        otherUser: loggedInUserId,
+        type:"post"
+       })       
+      if(oldNotification){
+        await Notification.findByIdAndDelete(oldNotification?._id)
+       }
       return res.json({ msg: "Post Unliked", status: 200 });
     } else {
       post.likes.unshift({ user: req.user.id });
