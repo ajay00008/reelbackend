@@ -16,8 +16,7 @@ const Message = require("../../models/Message");
 const {
   storyreplyValidator,
 } = require("../../utils/validators/messageValidator");
-const {Types} = require('mongoose');
-
+const { Types } = require("mongoose");
 
 // Create Post
 router.post("/", auth, async (req, res) => {
@@ -104,21 +103,33 @@ router.post("/video", auth, async (req, res) => {
 
 // Get All Post
 router.get("/", auth, async (req, res) => {
+  const { limit = 10, page = 1 } = req.query;
+  const skip = (page - 1) * limit;
   try {
     const user = await User.findById(req.user.id).select(
       "-password +savedPosts"
     );
-   
+   if(!user){
+    return res.status(404).json({msg:"user not found", errors:"unknown user", success:false})
+   }
     const savedPosts = user.savedPosts;
     const blockedUserIds = user.blockedUsers;
-    const blockedBy = user?.blockedBy
+    const blockedBy = user?.blockedBy;
     // console.log(savedPosts ,"savv", user)
     // user: { $in: user.following },
-    const post = await Post.find({
+
+    const query = {
       postType: "Post",
       _id: { $nin: user.hiddenPost },
-      user:{$nin :[...blockedUserIds, ...blockedBy]}
-    }).sort({ date: -1 })
+      user: { $nin: [...blockedUserIds, ...blockedBy] },
+    };
+
+    const totalPosts = await Post.countDocuments(query);
+
+    const totalPages = Math.ceil(totalPosts / limit); // Corrected calculation
+
+    const post = await Post.find(query)
+      .sort({ date: -1 })
       .populate({
         path: "user",
         select: "-password",
@@ -126,12 +137,21 @@ router.get("/", auth, async (req, res) => {
       .populate({
         path: "comments.user",
         model: "user",
-      });
+      })
+      .skip(skip)
+      .limit(limit);
+
     const postsWithSavedStatus = post.map((post) => ({
       ...post.toObject(),
       isSaved: savedPosts.includes(post._id.toString()),
     }));
-    return res.json({ post: postsWithSavedStatus, status: 200 });
+    return res.json({
+      post: postsWithSavedStatus,
+      status: 200,
+      totalPosts,
+      totalPages,
+      currentPage: page,
+    });
   } catch (err) {
     console.log(err.message);
     res.status(500).send("Server Error");
@@ -253,7 +273,6 @@ router.get("/story", auth, async (req, res) => {
     var totalRecords = [];
     var j = 0;
     for (i = 0; i < post.length; i++) {
-
       // if(post[i].user ===null){
       //   continue;
       // }
@@ -305,20 +324,21 @@ router.get("/stories", auth, async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    const blockedUserIds = user?.blockedUsers
-    const blockedBy = user?.blockedBy
+    const blockedUserIds = user?.blockedUsers;
+    const blockedBy = user?.blockedBy;
     // console.log(userId)
-    const allStories = await Post.find({ postType: "Story" ,  
-    user:{$nin :[...blockedUserIds, ...blockedBy]}
-  })
+    const allStories = await Post.find({
+      postType: "Story",
+      user: { $nin: [...blockedUserIds, ...blockedBy] },
+    })
       .sort({ date: -1 })
       .populate("user");
     // console.log(allStories, "all");
     const otherUserStories = allStories.filter((story) => {
-      if(story.user ===null){
+      if (story.user === null) {
         return;
       }
-     return  story.user?._id.toString() !== userId;
+      return story.user?._id.toString() !== userId;
     });
 
     var totalRecords = [];
@@ -361,23 +381,22 @@ router.get("/stories", auth, async (req, res) => {
 
     // Get stories of the login user
     const userStories = await Post.aggregate([
-        { $match: { user:new Types.ObjectId(userId), postType: "Story" } },
-        { $sort: { date: -1 } },
-        {
-          $addFields: {
-            story_id: "$_id",
-            story_image: "$media"
-          }
+      { $match: { user: new Types.ObjectId(userId), postType: "Story" } },
+      { $sort: { date: -1 } },
+      {
+        $addFields: {
+          story_id: "$_id",
+          story_image: "$media",
         },
-        {
-          $project: {
-            _id: 0,
-            story_id: 1,
-            story_image: 1
-          }
-        }
-      ]);
-      
+      },
+      {
+        $project: {
+          _id: 0,
+          story_id: 1,
+          story_image: 1,
+        },
+      },
+    ]);
 
     const userData = {
       user_id: user._id,
@@ -388,7 +407,7 @@ router.get("/stories", auth, async (req, res) => {
       stories: userStories,
     };
 
-    return res.json({ user_data: userData, otherStories: totalRecords});
+    return res.json({ user_data: userData, otherStories: totalRecords });
     // return res.json({ allStories , otherUserStories });
   } catch (err) {
     console.log(err.message, "fetching stories");
@@ -468,7 +487,7 @@ router.delete("/:id", auth, async (req, res) => {
 
 // Like Post
 router.put("/like/:id", auth, async (req, res) => {
-  const loggedInUserId =req.user?.id
+  const loggedInUserId = req.user?.id;
   try {
     const post = await Post.findById(req.params.id).populate("user").populate({
       path: "comments.user",
@@ -493,7 +512,7 @@ router.put("/like/:id", auth, async (req, res) => {
        })       
       if(oldNotification){
         await Notification.findByIdAndDelete(oldNotification?._id)
-       }
+      }
       return res.json({ msg: "Post Unliked", status: 200 });
     } else {
       post.likes.unshift({ user: req.user.id });
