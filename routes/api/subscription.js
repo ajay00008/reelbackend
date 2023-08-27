@@ -9,8 +9,9 @@ const config = require("config");
 const aws = require("aws-sdk");
 const multer = require("multer");
 const { default: Stripe } = require("stripe");
+console.log(process.env ,'ssss',process.env.STRIPE_KEY)
 const stripe = require("stripe")(
-  "sk_test_51MzKFkE8KjraTwLyKXD3BJdGwfDA2Kn958hH926oE0a9hzyInlFA4O2AUWDLKepf6HG3R8zqXN0FljAeOD5QRJML0070crkY8N",
+  process.env.STRIPE_KEY,
   {
     apiVersion: "2022-08-01",
   }
@@ -104,7 +105,7 @@ router.post("/payment-sheet", async (req, res) => {
     paymentIntent: paymentIntent.client_secret,
     ephemeralKey: ephemeralKey.secret,
     customer: customer.id,
-    publishableKey: "pk_test_qblFNYngBkEdjEZ16jxxoWSM",
+    publishableKey: process.env.PUBLISHABLE_KEY,
   });
 });
 
