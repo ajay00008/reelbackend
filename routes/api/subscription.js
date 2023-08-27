@@ -9,7 +9,6 @@ const config = require("config");
 const aws = require("aws-sdk");
 const multer = require("multer");
 const { default: Stripe } = require("stripe");
-console.log(process.env ,'ssss',process.env.STRIPE_KEY)
 const stripe = require("stripe")(
   process.env.STRIPE_KEY,
   {
