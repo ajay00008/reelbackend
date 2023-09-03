@@ -16,7 +16,7 @@ const app = express();
 
 connectDB();
 mailConnected();
-
+console.log("hi")
 
 
 const PORT = process.env.PORT || 5000;
@@ -35,6 +35,7 @@ app.use(
 app.use(
   express.json({
     extended: false,
+    limit:'50mb'
   })
 );
 app.use(cors());
@@ -67,10 +68,12 @@ app.use("/api/subscription", require("./routes/api/subscription"));
 app.use("/api/chats", require("./routes/api/chats"));
 app.use("/api/groups", auth, require("./routes/api/group"));
 app.use("/api/chatmessages", auth, require("./routes/api/chatMessage"));
+app.use("/api/blogs",  require("./routes/api/blogs"));
 
 app.use('*', (req, res) => {
   res.status(404).json({ message: 'Route not found in reelTok Backend' });
 });
+
 
 
 const server = app.listen(PORT, () => {

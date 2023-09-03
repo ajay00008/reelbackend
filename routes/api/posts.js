@@ -17,7 +17,7 @@ const {
   storyreplyValidator,
 } = require("../../utils/validators/messageValidator");
 const { Types } = require("mongoose");
-
+console.log("hii")
 // Create Post
 router.post("/", auth, async (req, res) => {
   const { text, postType, location, media, mimeType } = req.body;
@@ -109,9 +109,13 @@ router.get("/", auth, async (req, res) => {
     const user = await User.findById(req.user.id).select(
       "-password +savedPosts"
     );
-   if(!user){
-    return res.status(404).json({msg:"user not found", errors:"unknown user", success:false})
-   }
+    if (!user) {
+      return res.status(404).json({
+        msg: "user not found",
+        errors: "unknown user",
+        success: false,
+      });
+    }
     const savedPosts = user.savedPosts;
     const blockedUserIds = user.blockedUsers;
     const blockedBy = user?.blockedBy;
@@ -415,6 +419,47 @@ router.get("/stories", auth, async (req, res) => {
   }
 });
 
+router.get("/userStory/:id", auth , async (req, res) => {
+  const userId = req.params.id || '';
+  console.log(userId ,'iddd')
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" , errors:'unknown user',success:false });
+    }
+    const userStories = await Post.aggregate([
+      { $match: { user: new Types.ObjectId(userId), postType: "Story" } },
+      { $sort: { date: -1 } },
+      {
+        $addFields: {
+          story_id: "$_id",
+          story_image: "$media",
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          story_id: 1,
+          story_image: 1,
+        },
+      },
+    ]);
+
+    const userData = {
+      user_id: user._id,
+      user_name: user.username,
+      user_image: user.media
+        ? `${user.media}`
+        : "https://t4.ftcdn.net/jpg/03/59/58/91/360_F_359589186_JDLl8dIWoBNf1iqEkHxhUeeOulx0wOC5.jpg",
+      stories: userStories,
+    };
+    return res.json({ userStories: userData , success:true});
+  } catch (error) {
+    console.log(err.message, "fetching stories");
+    res.status(500).send({ message: "Server Error", success: false });
+  }
+});
+
 router.post("/storyreply", auth, storyreplyValidator, async (req, res) => {
   const loggedInUserId = req.user?.id;
   const errors = validationResult(req);
@@ -494,8 +539,11 @@ router.put("/like/:id", auth, async (req, res) => {
       model: "user",
     });
     const user = await User.findById(req.user.id).select("-password");
-    if(!post || !user){
-      return res.status(404).json({error:'unknown user or post' , msg :`${!post ? 'user':'post'} not found`})
+    if (!post || !user) {
+      return res.status(404).json({
+        error: "unknown user or post",
+        msg: `${!post ? "user" : "post"} not found`,
+      });
     }
     if (
       post.likes.filter((like) => like.user.toString() == req.user.id).length >
@@ -508,10 +556,10 @@ router.put("/like/:id", auth, async (req, res) => {
         post: post?._id,
         user: post?.user?._id,
         otherUser: loggedInUserId,
-        type:"post"
-       })       
-      if(oldNotification){
-        await Notification.findByIdAndDelete(oldNotification?._id)
+        type: "post",
+      });
+      if (oldNotification) {
+        await Notification.findByIdAndDelete(oldNotification?._id);
       }
       return res.json({ msg: "Post Unliked", status: 200 });
     } else {
