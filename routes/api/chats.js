@@ -41,7 +41,7 @@ router.get("/", auth , async (req, res) => {
   console.log(limit, page, skip, req.user);
   try {
     const loggedInUserId = req.user.id;
-    // const loggedInUserId = '64dde3097a9bb6ca192d5a57';
+    // const loggedInUserId = '64e0f623f6ebf3e1a1f2cd69';
 
     if (!loggedInUserId) {
       return res.status(422).json({ message: "please login first" });
@@ -57,6 +57,11 @@ router.get("/", auth , async (req, res) => {
               reciever: new Types.ObjectId(loggedInUserId),
             },
           ],
+        },
+      },
+      {
+        $sort: {
+          date: -1,
         },
       },
       {
