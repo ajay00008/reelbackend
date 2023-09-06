@@ -1,7 +1,7 @@
-const {Types} = require('mongoose');
-const {Router} = require('express');
-const auth = require('../../middleware/auth');
-const Message = require('../../models/Message');
+const { Types } = require("mongoose");
+const { Router } = require("express");
+const auth = require("../../middleware/auth");
+const Message = require("../../models/Message");
 
 const router = Router();
 let dummy = `https://png.pngitem.com/pimgs/s/35-350426_profile-icon-png-default-profile-picture-png-transparent.png`
@@ -35,18 +35,18 @@ function processChatEntry(chat, loggedInUserId) {
 }
 
 
-router.get("/",  auth , async (req, res) => {
-    const { limit = 10, page = 1 } = req.query;
-    const skip = (page - 1) * limit;
-    console.log(limit, page, skip , req.user);
-    try {
-    const loggedInUserId = req.user.id;
-          // const loggedInUserId = '64c56f0ee396e3a8bc81d29d';
+router.get("/",  async (req, res) => {
+  const { limit = 10, page = 1 } = req.query;
+  const skip = (page - 1) * limit;
+  console.log(limit, page, skip, req.user);
+  try {
+    // const loggedInUserId = req.user.id;
+    const loggedInUserId = '64dde3097a9bb6ca192d5a57';
 
-     if(!loggedInUserId){
-        return res.status(422).json({message:"please login first"})
-     }
-     const aggregate = [
+    if (!loggedInUserId) {
+      return res.status(422).json({ message: "please login first" });
+    }
+    const aggregate = [
       {
         $match: {
           $or: [
@@ -57,11 +57,6 @@ router.get("/",  auth , async (req, res) => {
               reciever: new Types.ObjectId(loggedInUserId),
             },
           ],
-        },
-      },
-      {
-        $sort: {
-          date: -1,
         },
       },
       {
@@ -117,7 +112,12 @@ router.get("/",  auth , async (req, res) => {
             },
             {
               $limit: Number(limit),
-            },
+            }, 
+            {
+              $sort: {
+                "message.date": -1, // Sort by date in descending order
+              },
+            },        
           ],
           totalCount: [
             {
@@ -125,19 +125,20 @@ router.get("/",  auth , async (req, res) => {
             },
           ],
         },
-      },
+      }
     ];
-      const [{ chats, totalCount }] = await Message.aggregate(aggregate);
-      const processedChats = chats.map(chat => processChatEntry(chat, loggedInUserId));
 
-      res.status(200).json({ chats: processedChats, totalChats: totalCount[0]?.count || 0 });
-    } catch (err) {
-      console.log(err.message);
-      res.status(500).send("Server Error");
-    }
-  });
-  
+    const [{chats , totalCount}]= await Message.aggregate(aggregate);
+    const processedChats = chats.map((chat) =>
+      processChatEntry(chat, loggedInUserId)
+    );
 
-  
+   return res.status(200)
+      .json({chats: processedChats, totalChats: totalCount[0]?.count || 0 });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+});
 
-  module.exports = router;
+module.exports = router;

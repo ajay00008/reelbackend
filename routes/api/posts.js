@@ -419,7 +419,7 @@ router.get("/stories", auth, async (req, res) => {
   }
 });
 
-router.get("/userStory/:id", auth , async (req, res) => {
+router.get("/userStory/:id", async (req, res) => {
   const userId = req.params.id || '';
   console.log(userId ,'iddd')
   try {
@@ -565,20 +565,23 @@ router.put("/like/:id", auth, async (req, res) => {
     } else {
       post.likes.unshift({ user: req.user.id });
       await post.save();
-      sendFirebaseNotifications(
-        `${user.firstName} Liked Your Post`,
-        post.user.fcmToken,
-        post?._id.toString(),
-        "post"
-      );
-      var userNotification = new Notification({
-        message: `${user.firstName} Liked Your Post`,
-        post: post?._id,
-        user: post?.user?._id,
-        otherUser: user?._id,
-        type: "post",
-      });
-      await userNotification.save();
+      if(loggedInUserId !==post?.user?._id){
+        sendFirebaseNotifications(
+          `${user.firstName} Liked Your Post`,
+          post.user.fcmToken,
+          post?._id.toString(),
+          "post"
+        );
+    
+        var userNotification = new Notification({
+          message: `${user.firstName} Liked Your Post`,
+          post: post?._id,
+          user: post?.user?._id,
+          otherUser: user?._id,
+          type: "post",
+        });
+        await userNotification.save();
+      }
       res.json({ post, status: 200, msg: "Post Liked" });
     }
   } catch (err) {
@@ -631,6 +634,7 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+  const loggedInUserId = req.user?.id;
     var notificationUsers = [];
     try {
       const user = await User.findById(req.user.id).select("-password");
@@ -642,21 +646,24 @@ router.post(
 
       post.comments.unshift(newComment);
       await post.save();
-      sendFirebaseNotifications(
-        `${user.firstName} Commented On Your Post`,
-        post.user.fcmToken,
-        post?._id.toString(),
-        "post"
-      );
-      var userNotification = new Notification({
-        message: `${user.firstName} Commented On Your Post`,
-        post: post?._id,
-        user: post?.user?._id,
-        otherUser: user?._id,
-        type: "post",
-      });
-      await userNotification.save();
-      res.json({ post, msg: "Comment Added", status: 200 });
+      
+      if(loggedInUserId !== post?.user?._id){
+        sendFirebaseNotifications(
+          `${user.firstName} Commented On Your Post`,
+          post.user.fcmToken,
+          post?._id.toString(),
+          "post"
+        );
+        var userNotification = new Notification({
+          message: `${user.firstName} Commented On Your Post`,
+          post: post?._id,
+          user: post?.user?._id,
+          otherUser: user?._id,
+          type: "post",
+        });
+         await userNotification.save();
+      }
+    return res.json({ post, msg: "Comment Added", status: 200 });
     } catch (err) {
       console.log(err.message);
       res.status(500).send("Server Error");
