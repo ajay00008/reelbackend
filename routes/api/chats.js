@@ -35,13 +35,13 @@ function processChatEntry(chat, loggedInUserId) {
 }
 
 
-router.get("/",  async (req, res) => {
+router.get("/", auth , async (req, res) => {
   const { limit = 10, page = 1 } = req.query;
   const skip = (page - 1) * limit;
   console.log(limit, page, skip, req.user);
   try {
-    // const loggedInUserId = req.user.id;
-    const loggedInUserId = '64dde3097a9bb6ca192d5a57';
+    const loggedInUserId = req.user.id;
+    // const loggedInUserId = '64dde3097a9bb6ca192d5a57';
 
     if (!loggedInUserId) {
       return res.status(422).json({ message: "please login first" });
