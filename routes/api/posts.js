@@ -539,6 +539,8 @@ router.put("/like/:id", auth, async (req, res) => {
       model: "user",
     });
     const user = await User.findById(req.user.id).select("-password");
+    const postUserId = post?.user?._id?.toString();
+
     if (!post || !user) {
       return res.status(404).json({
         error: "unknown user or post",
@@ -565,7 +567,7 @@ router.put("/like/:id", auth, async (req, res) => {
     } else {
       post.likes.unshift({ user: req.user.id });
       await post.save();
-      if(loggedInUserId !==post?.user?._id){
+      if(loggedInUserId !== postUserId){
         sendFirebaseNotifications(
           `${user.firstName} Liked Your Post`,
           post.user.fcmToken,
@@ -643,11 +645,11 @@ router.post(
         text: req.body.text,
         user: req.user.id,
       };
-
+      const postUserId = post?.user?._id?.toString();
       post.comments.unshift(newComment);
       await post.save();
       
-      if(loggedInUserId !== post?.user?._id){
+      if(loggedInUserId !== postUserId){
         sendFirebaseNotifications(
           `${user.firstName} Commented On Your Post`,
           post.user.fcmToken,
