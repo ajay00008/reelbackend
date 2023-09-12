@@ -92,7 +92,6 @@ module.exports = function sendNotifications(userArray,title,body) {
 
 module.exports = async function sendFirebaseNotifications(msg, token, contentId, type) {
     try{
-        console.log("jjjjjjjjjjj" , msg , contentId)
       const data =  await  admin.messaging().send({
             data:{
                 'contentId':contentId,
@@ -105,7 +104,6 @@ module.exports = async function sendFirebaseNotifications(msg, token, contentId,
             },
             token:token      
           })  
-        console.log(data ,"jjj")  
     } catch(err) {
         console.log(err)
     }

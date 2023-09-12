@@ -16,11 +16,11 @@ const app = express();
 
 connectDB();
 mailConnected();
-console.log("hi")
-
+console.log("hi");
 
 const PORT = process.env.PORT || 5000;
-
+console.log(`accessKeyId:${process.env.AWS_ACCESS_KEY}
+secretAccessKey:${process.env.AWS_SECRET_KEY}`);
 // app.use(fileUpload())
 
 app.use(
@@ -35,7 +35,7 @@ app.use(
 app.use(
   express.json({
     extended: false,
-    limit:'50mb'
+    limit: "50mb",
   })
 );
 app.use(cors());
@@ -68,13 +68,11 @@ app.use("/api/subscription", require("./routes/api/subscription"));
 app.use("/api/chats", require("./routes/api/chats"));
 app.use("/api/groups", auth, require("./routes/api/group"));
 app.use("/api/chatmessages", auth, require("./routes/api/chatMessage"));
-app.use("/api/blogs",  require("./routes/api/blogs"));
+app.use("/api/blogs", require("./routes/api/blogs"));
 
-app.use('*', (req, res) => {
-  res.status(404).json({ message: 'Route not found in reelTok Backend' });
+app.use("*", (req, res) => {
+  res.status(404).json({ message: "Route not found in reelTok Backend" });
 });
-
-
 
 const server = app.listen(PORT, () => {
   console.log(`Server Started on Port ${PORT}`);
@@ -105,7 +103,8 @@ io.on("connection", (socket) => {
 
   socket.on("new message", async (newMessageRec) => {
     console.log(newMessageRec, "newwwmee");
-    socket.in(newMessageRec.reciver._id)
+    socket
+      .in(newMessageRec.reciver._id)
       .emit("message recieved", newMessageRec);
     const newMessage = await new Message({
       roomId: newMessageRec.roomId,
@@ -137,19 +136,31 @@ io.on("connection", (socket) => {
       rooms[roomId] = [];
     }
 
-   socket.emit("message", rooms[roomId]);
-  //  Send previous messages to the newly joined user
+    socket.emit("message", rooms[roomId]);
+    //  Send previous messages to the newly joined user
 
     socket.on("disconnect", () => {
       console.log("A user disconnected");
     });
   });
   // Handle incoming chat messages
-  socket.on("chat message",async (data) => {
+  socket.on("chat message", async (data) => {
     console.log("Received message:", data);
     console.log(rooms, "heee");
 
-    const { roomId, text, user , createdAt , receiver , image , type , video , reel , reelVideo , isReelCompleted} = data;
+    const {
+      roomId,
+      text,
+      user,
+      createdAt,
+      receiver,
+      image,
+      type,
+      video,
+      reel,
+      reelVideo,
+      isReelCompleted,
+    } = data;
     // const{_id , name , avatar} = user
 
     // Save the message to the room's message history
@@ -165,37 +176,60 @@ io.on("connection", (socket) => {
         video,
         reel,
         reelVideo,
-        isReelCompleted
+        isReelCompleted,
       }); // Include sender's information
     } else {
       rooms[roomId] = [
-        { roomId, createdAt ,  user , text , receiver , image , type , video , reel , reelVideo , isReelCompleted},
+        {
+          roomId,
+          createdAt,
+          user,
+          text,
+          receiver,
+          image,
+          type,
+          video,
+          reel,
+          reelVideo,
+          isReelCompleted,
+        },
       ];
     }
-    console.log(rooms ,"roomId", roomId, "message", text);
-    let responseMessage = text ? text : image || video
+    console.log(rooms, "roomId", roomId, "message", text);
+    let responseMessage = text ? text : image || video;
     // Broadcast the message to all clients in the room
-    io.to(roomId).emit("chat message", { roomId, createdAt ,  user , receiver , text , image , video ,  type , reel , reelVideo , isReelCompleted});
-    const userchatroom  = await chatroom.findById({_id:roomId});
+    io.to(roomId).emit("chat message", {
+      roomId,
+      createdAt,
+      user,
+      receiver,
+      text,
+      image,
+      video,
+      type,
+      reel,
+      reelVideo,
+      isReelCompleted,
+    });
+    const userchatroom = await chatroom.findById({ _id: roomId });
     // console.log(userchatroom,"chatrrr")
-    if(userchatroom) {
-       userchatroom.text =text ? text: image || video
-       userchatroom.type = type ? type : null
-       await userchatroom.save();
+    if (userchatroom) {
+      userchatroom.text = text ? text : image || video;
+      userchatroom.type = type ? type : null;
+      await userchatroom.save();
 
-      const newMessage =  new chatMessage({
+      const newMessage = new chatMessage({
         roomId: roomId,
         user: user._id,
         image: image ? image : null,
         video: video ? video : null,
-        text: text ? text: null,
-        type:type || null,
+        text: text ? text : null,
+        type: type || null,
         reel: reel ? reel : false,
         isReelCompleted: isReelCompleted ? isReelCompleted : false,
-        reelVideo:reelVideo ? reelVideo : false
+        reelVideo: reelVideo ? reelVideo : false,
       });
       await newMessage.save();
     }
-
   });
 });

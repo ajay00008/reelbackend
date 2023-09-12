@@ -8,8 +8,8 @@ module.exports = async function uploadImageTos3Bucket(files) {
   var imageUrl = null;
   const s3 = new AWS.S3({
     credentials: {
-      accessKeyId: "AKIAXKJA67ZDLQXTQDET",
-      secretAccessKey: "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",
+      accessKeyId:process.env.AWS_ACCESS_KEY,
+      secretAccessKey:process.env.AWS_SECRET_KEY,
     },
   });
 

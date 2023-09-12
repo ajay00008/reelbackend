@@ -7,8 +7,10 @@ const sharp = require('sharp');
 aws.config.update({
   useAccelerateEndpoint:true,
   credentials: {
-    accessKeyId: "AKIAXKJA67ZDLQXTQDET",
-    secretAccessKey: "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",
+    // accessKeyId: "AKIAXKJA67ZDLQXTQDET",
+    // secretAccessKey: "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",
+    accessKeyId:process.env.AWS_ACCESS_KEY,
+    secretAccessKey:process.env.AWS_SECRET_KEY,
     region: "us-east-2",
   },
 });
