@@ -16,11 +16,10 @@ const app = express();
 
 connectDB();
 mailConnected();
-console.log("hi");
+
 
 const PORT = process.env.PORT || 5000;
-console.log(`accessKeyId:${process.env.AWS_ACCESS_KEY}
-secretAccessKey:${process.env.AWS_SECRET_KEY}`);
+
 // app.use(fileUpload())
 
 app.use(
