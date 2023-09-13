@@ -17,7 +17,7 @@ const {
   storyreplyValidator,
 } = require("../../utils/validators/messageValidator");
 const { Types } = require("mongoose");
-console.log("hii")
+// console.log("hii")
 // Create Post
 router.post("/", auth, async (req, res) => {
   const { text, postType, location, media, mimeType } = req.body;
