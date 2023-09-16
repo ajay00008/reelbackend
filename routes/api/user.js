@@ -22,7 +22,7 @@ const openai = new OpenAIApi(configuration);
 
 
 //Get Profile By Identifer id or username
-router.get("/:identifier", async (req, res) => {
+router.get("/:identifier",auth , async (req, res) => {
   const {identifier} = req.params;
   try {
     const user = await findUserByIdentifier(identifier);    

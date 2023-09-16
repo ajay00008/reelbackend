@@ -366,7 +366,7 @@ router.get("/stories", auth, async (req, res) => {
   }
 });
 
-router.get("/userStory/:id", async (req, res) => {
+router.get("/userStory/:id", auth , async (req, res) => {
   const userId = req.params.id || '';
   try {
     const user = await findUserByIdentifier(userId);    
