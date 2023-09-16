@@ -17,7 +17,8 @@ const {
   storyreplyValidator,
 } = require("../../utils/validators/messageValidator");
 const { Types } = require("mongoose");
-// console.log("hii")
+const { findUserByIdentifier } = require("../../utils/helpers");
+
 // Create Post
 router.post("/", auth, async (req, res) => {
   const { text, postType, location, media, mimeType } = req.body;
@@ -192,69 +193,15 @@ router.get("/saved", auth, async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
-// for test
-
-router.get("/test", auth, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select("-password");
-
-    const posts = await Post.aggregate([
-      {
-        $match: {
-          postType: "Post",
-          _id: { $nin: user.hiddenPost },
-        },
-      },
-      {
-        $lookup: {
-          from: "users", // Assuming the users collection name
-          localField: "_id",
-          foreignField: "savedPosts",
-          as: "savedBy",
-        },
-      },
-      {
-        $addFields: {
-          isSaved: { $in: [user._id, "$savedBy"] },
-        },
-      },
-      {
-        $sort: { date: -1 },
-      },
-      {
-        $unset: "savedBy",
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "user",
-          foreignField: "_id",
-          as: "user",
-        },
-      },
-      {
-        $unwind: "$user",
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "comments.user",
-          foreignField: "_id",
-          as: "comments.user",
-        },
-      },
-    ]);
-
-    return res.json({ posts, status: 200 });
-  } catch (err) {
-    console.log(err.message);
-    res.status(500).send("Server Error");
-  }
-});
 
 router.get("/user/:id", auth, async (req, res) => {
   try {
-    const post = await Post.find({ user: req.params.id })
+    const user = await findUserByIdentifier(req.params.id);    
+    if (!user) {
+      return res.status(404).json({ error:'unknown user', message: "User not found" , success : false  });
+    }
+
+    const post = await Post.find({ user: user._id})
       .populate("user")
       .populate({
         path: "comments.user",
@@ -421,14 +368,13 @@ router.get("/stories", auth, async (req, res) => {
 
 router.get("/userStory/:id", async (req, res) => {
   const userId = req.params.id || '';
-  console.log(userId ,'iddd')
   try {
-    const user = await User.findById(userId);
+    const user = await findUserByIdentifier(userId);    
     if (!user) {
-      return res.status(404).json({ message: "User not found" , errors:'unknown user',success:false });
+      return res.status(404).json({ message: "User not found" });
     }
     const userStories = await Post.aggregate([
-      { $match: { user: new Types.ObjectId(userId), postType: "Story" } },
+      { $match: { user: new Types.ObjectId(user._id), postType: "Story" } },
       { $sort: { date: -1 } },
       {
         $addFields: {

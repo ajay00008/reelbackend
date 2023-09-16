@@ -22,7 +22,7 @@ const personalSchema = [
     body('phone').notEmpty().withMessage('phone is required').isNumeric().withMessage('Phone must contain only digits'),
     body('countryCode').notEmpty().withMessage('countryCode is required'),
     body('firstName').notEmpty().withMessage('firstName is required'),
-    body('username').notEmpty().withMessage('firstName is required'),
+    body('username').notEmpty().withMessage('userName is required'),
     check("password", "Password is required").notEmpty(),
     check("password", "Password must be at least 6 characters long").isLength({ min: 6 }),
     check("email").exists().withMessage("Email is required"),

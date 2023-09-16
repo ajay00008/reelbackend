@@ -12,6 +12,7 @@ const Notification = require("../../models/Notification");
 const { Configuration, OpenAIApi } = require("openai");
 const Posts = require("../../models/Posts");
 const Art = require("../../models/Art");
+const { findUserByIdentifier } = require("../../utils/helpers");
 // console.log(process.env)
 const configuration = new Configuration({
   apiKey:process.env.OPENAI_API_KEY,
@@ -20,14 +21,18 @@ const openai = new OpenAIApi(configuration);
 
 
 
-//Get Profile By ID
-router.get("/:id", auth, async (req, res) => {
+//Get Profile By Identifer id or username
+router.get("/:identifier", async (req, res) => {
+  const {identifier} = req.params;
   try {
-    const user = await User.findById(req.params.id).select("-password").populate('followers').populate('following');
+    const user = await findUserByIdentifier(identifier);    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
     return res.json(user);
   } catch (err) {
     console.log(err.message);
-    res.status(500).send("Server Errro");
+    res.status(500).json({error:"Server Error" , message : err?.message || '' , success:false});
   }
 });
 
