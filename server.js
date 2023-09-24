@@ -12,6 +12,8 @@ const { mailConnected } = require("./service/nodemailer");
 const auth = require("./middleware/auth");
 const chatroom = require("./models/chatroom");
 const chatMessage = require("./models/chatMessage");
+const URL = require("./models/Url");
+
 const app = express();
 
 connectDB();
@@ -42,7 +44,24 @@ app.use("media/image", express.static("image"));
 app.use("media/video", express.static("image"));
 
 app.get("/", (req, res) => {
-  res.send("Reel Social Running successfully-pipelinedone");
+  res.send("Reel Tok Running successfully-pipelinedone");
+});
+
+app.get("/:shortId", async (req, res) => {
+  const shortId = req.params.shortId;
+  const entry = await URL.findOneAndUpdate(
+    {
+      shortId,
+    },
+    {
+      $push: {
+        visitHistory: {
+          timestamp: Date.now(),
+        },
+      },
+    }
+  );
+  res.redirect(entry.redirectURL);
 });
 
 app.get("/media/image/:name", (req, res) => {
@@ -68,6 +87,7 @@ app.use("/api/chats", require("./routes/api/chats"));
 app.use("/api/groups", auth, require("./routes/api/group"));
 app.use("/api/chatmessages", auth, require("./routes/api/chatMessage"));
 app.use("/api/blogs", require("./routes/api/blogs"));
+app.use("/api/url", require("./routes/api/url"));
 
 app.use("*", (req, res) => {
   res.status(404).json({ message: "Route not found in reelTok Backend" });

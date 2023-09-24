@@ -127,6 +127,11 @@ const UserSchema = new mongoose.Schema({
             ref:'user'
         }
     ],
+    role: {
+        type: Number,
+        default:0,                                                                                            //0 means user 1 means admin
+        enum:[0,1]      
+    },
 })
 
 module.exports = User = mongoose.model('user', UserSchema)
