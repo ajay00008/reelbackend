@@ -20,7 +20,7 @@ async function handleGenerateNewShortURL(req, res) {
             { upsert: true, new: true }
         );
 
-        return res.json({ data: result, success: true });
+        return res.json({ id: result.username , data: result, success: true });
     } catch (error) {
         console.log(error, "error: createurl")
         return res.status(500).json({ success: false, error: error });
