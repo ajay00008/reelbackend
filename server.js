@@ -46,12 +46,11 @@ app.use("media/video", express.static("image"));
 app.get("/", (req, res) => {
   res.send("Reel Tok Running successfully-pipelinedone");
 });
-
-app.get("/:shortId", async (req, res) => {
-  const shortId = req.params.shortId;
+app.get("/:username", async (req, res) => {
+  const username = req.params.username;
   const entry = await URL.findOneAndUpdate(
     {
-      shortId,
+      username,
     },
     {
       $push: {
@@ -61,7 +60,11 @@ app.get("/:shortId", async (req, res) => {
       },
     }
   );
-  res.redirect(entry.redirectURL);
+
+  if(!entry.redirectURL){
+     return res.json({message:"server error"})
+  }
+  return res.redirect(entry.redirectURL);
 });
 
 app.get("/media/image/:name", (req, res) => {

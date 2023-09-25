@@ -3,11 +3,12 @@ const {
   handleGenerateNewShortURL,
   handleGetAnalytics,
 } = require("../../controllers/url");
+const { urlValidator} = require("../../utils/validators/urlValidator");
 
 const router = express.Router();
 
-router.post("/", handleGenerateNewShortURL);
+router.post("/", urlValidator , handleGenerateNewShortURL);
 
-router.get("/analytics/:shortId", handleGetAnalytics);
+router.get("/analytics/:username", handleGetAnalytics);
 
 module.exports = router;
