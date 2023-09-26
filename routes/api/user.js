@@ -12,7 +12,7 @@ const Notification = require("../../models/Notification");
 const { Configuration, OpenAIApi } = require("openai");
 const Posts = require("../../models/Posts");
 const Art = require("../../models/Art");
-const { findUserByIdentifier } = require("../../utils/helpers");
+const { findUserByIdentifier , makeOpenAIRequest } = require("../../utils/helpers");
 // console.log(process.env)
 const configuration = new Configuration({
   apiKey:process.env.OPENAI_API_KEY,
@@ -155,12 +155,14 @@ router.post('/onboarding', auth, async (req, res) => {
 router.post('/image/generate', auth, async (req, res) => {
   try {
     const { text } = req.body;
-    const response = await openai.createImage({
+    const postData = {
       prompt: text,
       n: 1,
       size: "512x512",
-    });
-    var image_url = response.data.data[0].url;
+    }
+    // const response = await openai.createImage(postData);
+    const responseData = await makeOpenAIRequest(postData);
+    var image_url = responseData.data[0].url;
     const user = await User.findById(req.user.id).select("-password");
     user.subscriptionType.reelCoin = user.subscriptionType.reelCoin - 0.25
     console.log(user,'USER')
@@ -243,12 +245,13 @@ router.post('/art', async(req,res) => {
 router.post('/art/generate', async (req, res) => {
   try {
     const { text } = req.body;
-    const response = await openai.createImage({
+    const postData = {
       prompt: text,
       n: 1,
       size: "512x512",
-    });
-    var image_url = response.data.data[0].url;
+    }
+    const responseData = await makeOpenAIRequest(postData);
+    var image_url = responseData.data[0].url;
     return res.json({ msg: 'IMAGE', image_url })
   } catch (err) {
     console.log(err)
