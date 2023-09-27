@@ -52,7 +52,7 @@ app.get("/", async (req, res) => {
     JSON.stringify({name:"test"}),
     "group"
   ); 
-  res.json({message:"Reel Tok Running successfully-pipelinedoness"});
+  res.json({message:"Reel Tok Running successfully-pipelinedonesss"});
 });
 
 app.get("/:username", async (req, res) => {
