@@ -46,12 +46,6 @@ app.use("media/image", express.static("image"));
 app.use("media/video", express.static("image"));
 
 app.get("/", async (req, res) => {
-  await  sendFirebaseNotifications(
-    `tester Sent  a new message in user group`,
-    "fU-xiCcITZKECn90t70iEQ:APA91bGrKVZGNJ3EXLzpGZbdzOne1O8dU9Wo1sYUoIAxnSsiZxreHYQ-5owA4-OxbK7yuRaIbSVg3hMMmmpLgUJ2YFfBEM6N-T7D34LqzpGmTp6ttwK14m1JSpKowZcZ2LtZeZI31H-f",
-    JSON.stringify({name:"test"}),
-    "group"
-  ); 
   res.json({message:"Reel Tok Running successfully-pipelinedonesss"});
 });
 
@@ -268,13 +262,12 @@ io.on("connection", (socket) => {
       const membersToken = await getUsersToken(filteredMembers)
 
       for (let index = 0; index < membersToken.length; index++) {
-        console.log("heeyyy")
         const token = membersToken[index]; 
         await sendFirebaseNotifications(
-          `${sender?.username || sender?.firstName} Sent  a new message in ${userchatroom?.groupName}`,
-           token,
+         `${sender?.username || sender?.firstName} Sent a new message in ${userchatroom?.groupName} Group`,
+          token,
           JSON.stringify(userchatroom),
-          userchatroom.isGroup? "group" : "chat"
+          userchatroom.isGroup ? "group" : "chat"
         );       
       }
     }
