@@ -4,13 +4,13 @@ const auth = require("../../middleware/auth");
 const User = require("../../models/User");
 const Post = require("../../models/Posts");
 const { check, validationResult } = require("express-validator");
-const sendNotifications = require("../../middleware/notifications");
+// const sendNotifications = require("../../middleware/notifications");
 const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
 const ffmpeg = require("fluent-ffmpeg");
 ffmpeg.setFfmpegPath(ffmpegPath);
 const fs = require("fs");
-const sendFirebaseNotifications = require("../../middleware/notifications");
-const sendMultipleNotifications = require("../../middleware/notifications");
+// const sendFirebaseNotifications = require("../../middleware/notifications");
+const {sendMultipleNotifications , sendFirebaseNotifications , sendNotifications} = require("../../middleware/notifications");
 const Notification = require("../../models/Notification");
 const Message = require("../../models/Message");
 const {

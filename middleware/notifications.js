@@ -8,7 +8,7 @@ admin.initializeApp({
 })
 
 
-module.exports = function sendNotifications(userArray,title,body) {
+function sendNotifications(userArray,title,body) {
     let messages = [];
     for (let pushToken of userArray) {
         // Each push token looks like ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]
@@ -90,7 +90,7 @@ module.exports = function sendNotifications(userArray,title,body) {
     })();
 }
 
-module.exports = async function sendFirebaseNotifications(msg, token, contentId, type) {
+async function sendFirebaseNotifications(msg, token, contentId, type) {
     try{
       const data =  await  admin.messaging().send({
             data:{
@@ -103,14 +103,15 @@ module.exports = async function sendFirebaseNotifications(msg, token, contentId,
               imageUrl: 'https://my-cdn.com/app-logo.png',
             },
             token:token      
-          })  
+          }) 
+
     } catch(err) {
         console.log(err)
     }
     
 }
 
-module.exports = async function sendMultipleNotifications(msg, tokens, contentId, type) {
+async function sendMultipleNotifications(msg, tokens, contentId, type) {
     try {
       const messages = tokens?.map((token) => ({
         data: {
@@ -130,3 +131,10 @@ module.exports = async function sendMultipleNotifications(msg, tokens, contentId
       console.log(err);
     }
 };
+
+
+module.exports = {
+  sendNotifications,
+  sendFirebaseNotifications,
+  sendMultipleNotifications
+}
