@@ -13,6 +13,8 @@ const auth = require("./middleware/auth");
 const chatroom = require("./models/chatroom");
 const chatMessage = require("./models/chatMessage");
 const URL = require("./models/Url");
+const { getUsersToken} = require("./utils/notifications");
+const { findUserByIdentifier } = require("./utils/helpers");
 
 const app = express();
 
@@ -43,9 +45,11 @@ app.use(cors());
 app.use("media/image", express.static("image"));
 app.use("media/video", express.static("image"));
 
-app.get("/", (req, res) => {
-  res.send("Reel Tok Running successfully-pipelinedones");
+app.get("/", async (req, res) => {
+  const data = await sendNotification(["64dd02fe5081ec49400f2fca" , "64dd076c5081ec49400f2fe6","64dd946e7a9bb6ca192d5a0a"])
+  res.json({message:"Reel Tok Running successfully-pipelinedones", data});
 });
+
 app.get("/:username", async (req, res) => {
   const username = req.params.username;
   const entry = await URL.findOneAndUpdate(
@@ -61,7 +65,7 @@ app.get("/:username", async (req, res) => {
     }
   );
 
-  if(!entry.redirectURL){
+  if(!entry?.redirectURL){
      return res.json({message:"server error"})
   }
   return res.redirect(entry.redirectURL);
@@ -234,6 +238,7 @@ io.on("connection", (socket) => {
       isReelCompleted,
     });
     const userchatroom = await chatroom.findById({ _id: roomId });
+    const sender = await findUserByIdentifier(user?._id);
     // console.log(userchatroom,"chatrrr")
     if (userchatroom) {
       userchatroom.text = text ? text : image || video;
@@ -252,6 +257,20 @@ io.on("connection", (socket) => {
         reelVideo: reelVideo ? reelVideo : false,
       });
       await newMessage.save();
+
+      const allmembers = [userchatroom.admin , ...userchatroom.members]
+      const filteredMembers = allmembers.filter(member => member !== user?._id);
+      const membersToken = await getUsersToken(filteredMembers)
+
+      for (let index = 0; index < membersToken.length; index++) {
+        const token = membersToken[index]; 
+        sendFirebaseNotifications(
+          `${sender.username || sender.firstName} Sent  a new message in ${userchatroom.groupName}`,
+           token,
+          JSON.stringify(userchatroom),
+          userchatroom.isGroup? "group" : "chat"
+        );       
+      }
     }
   });
 });
