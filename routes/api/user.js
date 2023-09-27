@@ -155,6 +155,8 @@ router.post('/onboarding', auth, async (req, res) => {
 router.post('/image/generate', auth, async (req, res) => {
   try {
     const { text } = req.body;
+    console.log(req.body ,"image req body")
+
     const postData = {
       prompt: text,
       n: 1,
@@ -163,6 +165,7 @@ router.post('/image/generate', auth, async (req, res) => {
     // const response = await openai.createImage(postData);
     const responseData = await makeOpenAIRequest(postData);
     var image_url = responseData.data[0].url;
+    console.log(image_url , "image generate")
     const user = await User.findById(req.user.id).select("-password");
     user.subscriptionType.reelCoin = user.subscriptionType.reelCoin - 0.25
     console.log(user,'USER')
@@ -245,6 +248,7 @@ router.post('/art', async(req,res) => {
 router.post('/art/generate', async (req, res) => {
   try {
     const { text } = req.body;
+    console.log(req.body ,"req.body")
     const postData = {
       prompt: text,
       n: 1,
@@ -252,6 +256,7 @@ router.post('/art/generate', async (req, res) => {
     }
     const responseData = await makeOpenAIRequest(postData);
     var image_url = responseData.data[0].url;
+    console.log(image_url , "art imageUrl")
     return res.json({ msg: 'IMAGE', image_url })
   } catch (err) {
     console.log(err)
