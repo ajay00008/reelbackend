@@ -46,8 +46,7 @@ app.use("media/image", express.static("image"));
 app.use("media/video", express.static("image"));
 
 app.get("/", async (req, res) => {
-  const data = await sendNotification(["64dd02fe5081ec49400f2fca" , "64dd076c5081ec49400f2fe6","64dd946e7a9bb6ca192d5a0a"])
-  res.json({message:"Reel Tok Running successfully-pipelinedones", data});
+  res.json({message:"Reel Tok Running successfully-pipelinedoness"});
 });
 
 app.get("/:username", async (req, res) => {
@@ -265,7 +264,7 @@ io.on("connection", (socket) => {
       for (let index = 0; index < membersToken.length; index++) {
         const token = membersToken[index]; 
         sendFirebaseNotifications(
-          `${sender.username || sender.firstName} Sent  a new message in ${userchatroom.groupName}`,
+          `${sender?.username || sender?.firstName} Sent  a new message in ${userchatroom?.groupName}`,
            token,
           JSON.stringify(userchatroom),
           userchatroom.isGroup? "group" : "chat"
