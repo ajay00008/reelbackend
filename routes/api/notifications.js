@@ -42,16 +42,34 @@ router.get("/", auth , async (req, res) => {
       Notification.find({
         user: loggedInUserId,
         date: { $gte: dates.yesterday.start, $lte: dates.yesterday.end },
-      }).populate('user otherUser post chatroom message').sort({ date: -1 }),
+      }).populate('user otherUser post chatroom message').populate('user otherUser post chatroom message').populate({
+        path: 'message',
+        populate: {
+          path: 'sender',
+          model: 'user', 
+        },
+      }).sort({ date: -1 }),
 
       Notification.find({
         user: loggedInUserId,
         date: { $gte: dates.oneWeekAgo.start, $lte: dates.oneWeekAgo.end },
-      }).populate('user otherUser post chatroom roomId message').sort({ date: -1 }),
+      }).populate('user otherUser post chatroom roomId message').populate('user otherUser post chatroom message').populate({
+        path: 'message',
+        populate: {
+          path: 'sender',
+          model: 'user', 
+        },
+      }).sort({ date: -1 }),
 
       Notification.find({
         user: loggedInUserId,
         date: { $gte: dates.lastMonth.start, $lte: dates.lastMonth.end },
+      }).populate('user otherUser post chatroom message').populate({
+        path: 'message',
+        populate: {
+          path: 'sender',
+          model: 'user', 
+        },
       }).populate('user otherUser post chatroom roomId message').sort({ date: -1 })
     ]);
 
