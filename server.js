@@ -15,6 +15,7 @@ const chatMessage = require("./models/chatMessage");
 const URL = require("./models/Url");
 const { getUsersToken} = require("./utils/notifications");
 const { findUserByIdentifier } = require("./utils/helpers");
+const Notification = require("./models/Notification");
 
 const app = express();
 
@@ -243,7 +244,7 @@ io.on("connection", (socket) => {
       userchatroom.text = text ? text : image || video;
       userchatroom.type = type ? type : null;
       await userchatroom.save();
-
+// if reel than means it reelmail
       const newMessage = new chatMessage({
         roomId: roomId,
         user: user._id,
@@ -262,13 +263,22 @@ io.on("connection", (socket) => {
       const membersToken = await getUsersToken(filteredMembers)
 
       for (let index = 0; index < membersToken.length; index++) {
-        const token = membersToken[index]; 
+        const {id:memberId , token} = membersToken[index]; 
         await sendFirebaseNotifications(
          `${sender?.username || sender?.firstName} Sent a new message in ${userchatroom?.groupName} Group`,
           token,
           JSON.stringify(userchatroom),
           userchatroom.isGroup ? "group" : "chat"
-        );       
+        )   
+        if(reel){
+          var userNotification = new Notification({
+            message: `${sender?.username || sender?.firstName} sent new reel`,
+            chatroom: roomId,
+            user: memberId,
+            type: "group",
+          })
+          await userNotification.save()             
+        }
       }
     }
   });
