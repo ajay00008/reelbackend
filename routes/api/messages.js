@@ -113,7 +113,7 @@ router.post("/", auth, async (req, res) => {
         message: `${sendingUser?.username || sender?.firstName} sent a new reel`,
         roomId: roomId,
         user: recUser._id,
-        message:message?._id,
+        textMessage:message?._id,
         type: "message"
       })
       await userNotification.save()   
