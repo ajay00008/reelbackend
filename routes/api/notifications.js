@@ -31,7 +31,13 @@ router.get("/", auth , async (req, res) => {
       Notification.find({
         user: loggedInUserId,
         date: { $gte: dates.today.start, $lte: dates.today.end },
-      }).populate('user otherUser post chatroom message').sort({ date: -1 }),
+      }).populate('user otherUser post chatroom message').populate({
+        path: 'message',
+        populate: {
+          path: 'sender',
+          model: 'user', 
+        },
+      }).sort({ date: -1 }),
 
       Notification.find({
         user: loggedInUserId,
