@@ -171,8 +171,8 @@ io.on("connection", (socket) => {
   });
   // Handle incoming chat messages
   socket.on("chat message", async (data) => {
-    console.log("Received message:", data);
-    console.log(rooms, "heee");
+    // console.log("Received message:", data);
+    // console.log(rooms, "heee");
 
     const {
       roomId,
