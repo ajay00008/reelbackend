@@ -257,13 +257,12 @@ io.on("connection", (socket) => {
         reelVideo: reelVideo ? reelVideo : false,
       });
       await newMessage.save();
-      const senderId = sender?._id.toString() || ''
+
       const allmembers = [userchatroom.admin , ...userchatroom.members]
       console.log(allmembers ,"allmembers")
-      const filteredMembers = allmembers.filter(member => member !== senderId);
-      console.log('sender',senderId)
+      const filteredMembers = allmembers.filter(member => member !== sender?._id.toString());
       const membersToken = await getUsersToken(filteredMembers)
-      console.log(filteredMembers ,"filteredM", membersToken)
+      console.log(filteredMembers ,"filteredM", membersToken , sender?._id.toString())
 
       for (let index = 0; index < membersToken.length; index++) {
         const {id:memberId , token} = membersToken[index]; 
@@ -274,7 +273,7 @@ io.on("connection", (socket) => {
           JSON.stringify(userchatroom),
           userchatroom.isGroup ? "group" : "chat"
            )
-        if(reel && memberId !== senderId){
+        if(reel && memberId.toString() !==user?._id.toString()){
           var userNotification = new Notification({
             message: `${sender?.username || sender?.firstName} sent new reel in ${userchatroom?.groupName} Group`,
             chatroom: roomId,
