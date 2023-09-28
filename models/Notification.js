@@ -24,7 +24,7 @@ const NotificationSchema = new mongoose.Schema({
         ref: 'Chatroom'
     },
     roomId:{
-        type:mongoose.Schema.Types.ObjectId,
+        type:String,
     },
     date:{
         type:Date,
