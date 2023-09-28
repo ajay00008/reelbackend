@@ -79,6 +79,7 @@ router.get("/:id", auth, async (req, res) => {
 });
 
 router.post("/", auth, async (req, res) => {
+  console.log("sendmesssage")
   const { roomId, user, reciver, text, reel, image, video, isReelCompleted } = req.body;
   try {
     const newMessage = await new Message({
