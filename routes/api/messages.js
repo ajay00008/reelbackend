@@ -105,14 +105,7 @@ router.post("/", auth, async (req, res) => {
     if(reel) {
       let user = await User.findById(req.user.id).select("-password");
       user.subscriptionType.reelCoin = user.subscriptionType.reelCoin - 0.25
-      await user.save()
-      var userNotification = new Notification({
-        message: `${sendingUser?.username || sender?.firstName} sent new reel`,
-        roomId: roomId,
-        user: recUser._id,
-        type: "message",
-      })
-      await userNotification.save()    
+      await user.save()  
     }
 
     return res.json({ newMessage, status: 200 });
@@ -157,6 +150,13 @@ router.post("/reelmessage", auth, async (req, res) => {
         JSON.stringify(sendingUser),
         "chat"
       );
+      var userNotification = new Notification({
+        message: `${sendingUser?.username || sender?.firstName} sent new reel`,
+        roomId: roomId,
+        user: recUser._id,
+        type: "message",
+      })
+      await userNotification.save()  
     }
 
     return res.json({ newMessage, status: 200 });
