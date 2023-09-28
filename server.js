@@ -275,7 +275,7 @@ io.on("connection", (socket) => {
         )   
         if(reel && memberId !==user?._id){
           var userNotification = new Notification({
-            message: `${sender?.username || sender?.firstName} sent new reel`,
+            message: `${sender?.username || sender?.firstName} sent new reel in ${userchatroom?.groupName} Group`,
             chatroom: roomId,
             user: memberId,
             type: "group",
