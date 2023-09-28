@@ -13,7 +13,7 @@ const upload = require("../../middleware/localStorage");
 const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
 const ffmpeg = require("fluent-ffmpeg");
 ffmpeg.setFfmpegPath(ffmpegPath);
-const sendFirebaseNotifications = require("../../middleware/notifications");
+const {sendFirebaseNotifications }= require("../../middleware/notifications");
 const Notification = require("../../models/Notification");
 
 router.get("/:id", auth, async (req, res) => {
