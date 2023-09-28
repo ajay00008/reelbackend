@@ -31,22 +31,22 @@ router.get("/", auth , async (req, res) => {
       Notification.find({
         user: loggedInUserId,
         date: { $gte: dates.today.start, $lte: dates.today.end },
-      }).populate('user otherUser post').sort({ date: -1 }),
+      }).populate('user otherUser post chatroom roomId').sort({ date: -1 }),
 
       Notification.find({
         user: loggedInUserId,
         date: { $gte: dates.yesterday.start, $lte: dates.yesterday.end },
-      }).populate('user otherUser post').sort({ date: -1 }),
+      }).populate('user otherUser post chatroom roomId').sort({ date: -1 }),
 
       Notification.find({
         user: loggedInUserId,
         date: { $gte: dates.oneWeekAgo.start, $lte: dates.oneWeekAgo.end },
-      }).populate('user otherUser post').sort({ date: -1 }),
+      }).populate('user otherUser post chatroom roomId').sort({ date: -1 }),
 
       Notification.find({
         user: loggedInUserId,
         date: { $gte: dates.lastMonth.start, $lte: dates.lastMonth.end },
-      }).populate('user otherUser post').sort({ date: -1 })
+      }).populate('user otherUser post chatroom roomId').sort({ date: -1 })
     ]);
 
     return res.json({

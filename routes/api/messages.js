@@ -14,6 +14,7 @@ const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
 const ffmpeg = require("fluent-ffmpeg");
 ffmpeg.setFfmpegPath(ffmpegPath);
 const sendFirebaseNotifications = require("../../middleware/notifications");
+const Notification = require("../../models/Notification");
 
 router.get("/:id", auth, async (req, res) => {
   try {
@@ -105,6 +106,13 @@ router.post("/", auth, async (req, res) => {
       let user = await User.findById(req.user.id).select("-password");
       user.subscriptionType.reelCoin = user.subscriptionType.reelCoin - 0.25
       await user.save()
+      var userNotification = new Notification({
+        message: `${sendingUser?.username || sender?.firstName} sent new reel`,
+        roomId: roomId,
+        user: recUser._id,
+        type: "message",
+      })
+      await userNotification.save()    
     }
 
     return res.json({ newMessage, status: 200 });

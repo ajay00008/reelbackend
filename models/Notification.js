@@ -23,6 +23,10 @@ const NotificationSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Chatroom'
     },
+    roomId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"message"
+    },
     date:{
         type:Date,
         default: Date.now
