@@ -260,7 +260,7 @@ io.on("connection", (socket) => {
 
       const allmembers = [userchatroom.admin , ...userchatroom.members]
       console.log(allmembers ,"allmembers")
-      const filteredMembers = allmembers.filter(member => member !== sender?._id.toString());
+      const filteredMembers = allmembers.filter(member => member.toString() !== sender?._id.toString());
       const membersToken = await getUsersToken(filteredMembers)
       console.log(filteredMembers ,"filteredM", membersToken , sender?._id.toString())
 

@@ -5,7 +5,7 @@ async function getUsersToken(users) {
     const response = await Promise.all(users.map(async (id) => {
       const data = await findUserByIdentifier(id);
       console.log(data, "data");
-      return { id, token: data?.fcmToken };
+      return { id : data._id.toString(), token: data?.fcmToken };
     }));
 
     // Filter out objects with undefined fcmToken
