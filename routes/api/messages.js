@@ -94,7 +94,7 @@ router.post("/", auth, async (req, res) => {
     });
     const recUser = await User.findById(reciver);
     const sendingUser = await User.findById(user);
-    await newMessage.save();
+    const message = await newMessage.save();
     if (recUser.fcmToken) {
      await  sendFirebaseNotifications(
         `${sendingUser.firstName} Sent You A Post`,
@@ -113,7 +113,8 @@ router.post("/", auth, async (req, res) => {
         message: `${sendingUser?.username || sender?.firstName} sent a new reel`,
         roomId: roomId,
         user: recUser._id,
-        type: "message",
+        message:message?._id,
+        type: "message"
       })
       await userNotification.save()   
     }
@@ -152,7 +153,7 @@ router.post("/reelmessage", auth, async (req, res) => {
     const recUser = await User.findById(reciver);
     const sendingUser = await User.findById(user);
 
-    await newMessage.save();
+    const message = await newMessage.save();
     if (recUser.fcmToken) {
       await sendFirebaseNotifications(
         `${sendingUser.firstName} Sent You A Post`,
@@ -160,13 +161,14 @@ router.post("/reelmessage", auth, async (req, res) => {
         JSON.stringify(sendingUser),
         "chat"
       );
-      var userNotification = new Notification({
-        message: `${sendingUser?.username || sender?.firstName} sent a new reel`,
-        roomId: roomId,
-        user: recUser._id,
-        type: "message",
-      })
-      await userNotification.save()  
+      // var userNotification = new Notification({
+      //   message: `${sendingUser?.username || sender?.firstName} sent a new reel`,
+      //   roomId: roomId,
+      //   user: recUser._id,
+      //   type: "message",
+      //   message:message?._id
+      // })
+      // await userNotification.save()  
     }
 
     return res.json({ newMessage, status: 200 });

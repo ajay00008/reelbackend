@@ -26,6 +26,10 @@ const NotificationSchema = new mongoose.Schema({
     roomId:{
         type:String,
     },
+    message:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'message' 
+    },
     date:{
         type:Date,
         default: Date.now
