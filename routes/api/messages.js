@@ -95,7 +95,7 @@ router.post("/", auth, async (req, res) => {
     const sendingUser = await User.findById(user);
     await newMessage.save();
     if (recUser.fcmToken) {
-      sendFirebaseNotifications(
+     await  sendFirebaseNotifications(
         `${sendingUser.firstName} Sent You A Post`,
         recUser.fcmToken,
         JSON.stringify(sendingUser),
@@ -105,7 +105,14 @@ router.post("/", auth, async (req, res) => {
     if(reel) {
       let user = await User.findById(req.user.id).select("-password");
       user.subscriptionType.reelCoin = user.subscriptionType.reelCoin - 0.25
-      await user.save()  
+      await user.save() 
+      var userNotification = new Notification({
+        message: `${sendingUser?.username || sender?.firstName} sent new reel`,
+        roomId: roomId,
+        user: recUser._id,
+        type: "message",
+      })
+      await userNotification.save()   
     }
 
     return res.json({ newMessage, status: 200 });
@@ -144,7 +151,7 @@ router.post("/reelmessage", auth, async (req, res) => {
 
     await newMessage.save();
     if (recUser.fcmToken) {
-      sendFirebaseNotifications(
+      await sendFirebaseNotifications(
         `${sendingUser.firstName} Sent You A Post`,
         recUser.fcmToken,
         JSON.stringify(sendingUser),
