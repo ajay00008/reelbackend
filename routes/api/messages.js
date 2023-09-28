@@ -102,12 +102,14 @@ router.post("/", auth, async (req, res) => {
         "chat"
       );
     }
+    console.log("heyyy")
     if(reel) {
       let user = await User.findById(req.user.id).select("-password");
       user.subscriptionType.reelCoin = user.subscriptionType.reelCoin - 0.25
       await user.save() 
+      console.log("innnn")
       var userNotification = new Notification({
-        message: `${sendingUser?.username || sender?.firstName} sent new reel`,
+        message: `${sendingUser?.username || sender?.firstName} sent a new reel`,
         roomId: roomId,
         user: recUser._id,
         type: "message",
@@ -158,7 +160,7 @@ router.post("/reelmessage", auth, async (req, res) => {
         "chat"
       );
       var userNotification = new Notification({
-        message: `${sendingUser?.username || sender?.firstName} sent new reel`,
+        message: `${sendingUser?.username || sender?.firstName} sent a new reel`,
         roomId: roomId,
         user: recUser._id,
         type: "message",
