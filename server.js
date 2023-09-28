@@ -259,18 +259,21 @@ io.on("connection", (socket) => {
       await newMessage.save();
 
       const allmembers = [userchatroom.admin , ...userchatroom.members]
+      console.log(allmembers ,"allmembers")
       const filteredMembers = allmembers.filter(member => member !== user?._id);
       const membersToken = await getUsersToken(filteredMembers)
+      console.log(filteredMembers ,"filteredM", membersToken)
 
       for (let index = 0; index < membersToken.length; index++) {
         const {id:memberId , token} = membersToken[index]; 
+        console.log("final")
         await sendFirebaseNotifications(
          `${sender?.username || sender?.firstName} Sent a new message in ${userchatroom?.groupName} Group`,
           token,
           JSON.stringify(userchatroom),
           userchatroom.isGroup ? "group" : "chat"
         )   
-        if(reel){
+        if(reel && memberId !==user?._id){
           var userNotification = new Notification({
             message: `${sender?.username || sender?.firstName} sent new reel`,
             chatroom: roomId,
