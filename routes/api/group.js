@@ -16,11 +16,14 @@ const {
   sendFirebaseNotifications,
   sendFirebaseNotificationById,
 } = require("../../middleware/notifications");
-const ObjectId = mongoose.Types.ObjectId;
+const { getUsersToken} = require("../../utils/notifications");
+const Notification = require("../../models/Notification");
+
 
 const sendAddGroupNotification = async ({
   newMembers,
   userName,
+  group,
   groupId,
   groupName,
 }) => {
@@ -35,7 +38,7 @@ const sendAddGroupNotification = async ({
       "group"
     );
     var userNotification = new Notification({
-      message: `${username} added you in ${groupName} Group`,
+      message: `${userName} added you in ${groupName} Group`,
       chatroom: groupId,
       user: memberId,
       type: "group",
@@ -141,6 +144,7 @@ router.post("/", groupValidator, async (req, res) => {
     await sendAddGroupNotification({
       newMembers: members,
       userName: username ?? firstName,
+      group:data,
       groupId: data._id,
       groupName: groupName ? groupName : group.groupName,
     });
@@ -275,6 +279,7 @@ router.put("/", async (req, res) => {
     await sendAddGroupNotification({
       newMembers,
       userName: username ?? firstName,
+      group:updateRecords,
       groupId,
       groupName: groupName ? groupName : group.groupName,
     });
