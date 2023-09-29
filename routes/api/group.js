@@ -31,12 +31,6 @@ const sendAddGroupNotification = async ({
   for (let index = 0; index < membersToken.length; index++) {
     const { id: memberId, token } = membersToken[index];
     console.log("group final");
-    await sendFirebaseNotifications(
-      `${userName} added you in ${groupName} Group`,
-      token,
-      JSON.stringify(group),
-      "group"
-    );
     var userNotification = new Notification({
       message: `${userName} added you in ${groupName} Group`,
       chatroom: groupId,
@@ -44,6 +38,12 @@ const sendAddGroupNotification = async ({
       type: "group",
     });
     await userNotification.save();
+    await sendFirebaseNotifications(
+      `${userName} added you in ${groupName} Group`,
+      token,
+      JSON.stringify(group),
+      "group"
+    );
   }
 };
 
