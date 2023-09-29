@@ -6,7 +6,7 @@ const { check, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("config");
-const sendFirebaseNotifications = require("../../middleware/notifications");
+const {sendFirebaseNotifications }= require("../../middleware/notifications");
 const upload = require("../../middleware/localStorage");
 const Notification = require("../../models/Notification");
 const { Configuration, OpenAIApi } = require("openai");
@@ -83,12 +83,14 @@ router.post("/unfollow/:id", auth, async (req, res) => {
   try {
     const followerUser = await User.findById(req.params.id).select("-password");
     const followingUser = await User.findById(req.user.id).select("-password");
-    var index = followingUser.following.indexOf(req.params.id);
-    followingUser.following.splice(index, 1);
+    // Remove all occurrences of the user ID from the following array
+    followingUser.following = followingUser?.following.filter(id => id.toString() !== req.params.id);
     await followingUser.save();
-    var index = followerUser.followers.indexOf(req.user.id);
-    followerUser.followers.splice(index, 1);
+
+    // Remove all occurrences of the logged-in user's ID from the followers array
+    followerUser.followers = followerUser?.followers.filter(id => id.toString() !== req.user.id);
     await followerUser.save();
+    
     const oldNotification = await Notification.findOne({
       user: req.params.id,
       otherUser: loggedInUserId,
