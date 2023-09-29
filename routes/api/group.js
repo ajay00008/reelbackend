@@ -4,12 +4,45 @@ const chatroom = require("../../models/chatroom");
 const upload = require("../../upload/upload");
 const fs = require("fs");
 const { uploadImage } = require("../../upload/uploadImage");
-const { groupValidator, leaveValidator } = require("../../utils/validators/groupValidator");
+const {
+  groupValidator,
+  leaveValidator,
+} = require("../../utils/validators/groupValidator");
 const { validationResult } = require("express-validator");
 const mongoose = require("mongoose");
 const User = require("../../models/User");
 const auth = require("../../middleware/auth");
+const {
+  sendFirebaseNotifications,
+  sendFirebaseNotificationById,
+} = require("../../middleware/notifications");
 const ObjectId = mongoose.Types.ObjectId;
+
+const sendAddGroupNotification = async ({
+  newMembers,
+  userName,
+  groupId,
+  groupName,
+}) => {
+  const membersToken = await getUsersToken(newMembers);
+  for (let index = 0; index < membersToken.length; index++) {
+    const { id: memberId, token } = membersToken[index];
+    console.log("group final");
+    await sendFirebaseNotifications(
+      `${userName} added you in ${groupName} Group`,
+      token,
+      JSON.stringify(group),
+      "group"
+    );
+    var userNotification = new Notification({
+      message: `${username} added you in ${groupName} Group`,
+      chatroom: groupId,
+      user: memberId,
+      type: "group",
+    });
+    await userNotification.save();
+  }
+};
 
 router.get("/", async (req, res) => {
   const userId = req.user.id;
@@ -72,27 +105,24 @@ router.post("/", groupValidator, async (req, res) => {
     if (!userInfo) {
       return res.status(404).json({ success: false, msg: "user not found" });
     }
+    const { username, firstName } = userInfo;
     const profileType = userInfo.profileType;
     // console.log(profileType,"pro")
     if (profileType === "business") {
       if (members.length > 20) {
-        return res
-          .status(200)
-          .json({
-            success: false,
-            errors: "business users can't  add more than 20 members",
-            message: "members limit reached",
-          });
+        return res.status(200).json({
+          success: false,
+          errors: "business users can't  add more than 20 members",
+          message: "members limit reached",
+        });
       }
     } else {
       if (members.length > 5) {
-        return res
-          .status(200)
-          .json({
-            success: false,
-            errors: "personal users can't  add more than 5 members",
-            message: "members limit reached",
-          });
+        return res.status(200).json({
+          success: false,
+          errors: "personal users can't  add more than 5 members",
+          message: "members limit reached",
+        });
       }
     }
 
@@ -108,6 +138,12 @@ router.post("/", groupValidator, async (req, res) => {
     });
     const data = await group.save();
     res.status(201).json({ group: data, success: true });
+    await sendAddGroupNotification({
+      newMembers: members,
+      userName: username ?? firstName,
+      groupId: data._id,
+      groupName: groupName ? groupName : group.groupName,
+    });
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ message: error.message, success: false });
@@ -177,6 +213,7 @@ router.put("/", async (req, res) => {
 
   try {
     const userInfo = await User.findById({ _id: loggedInUserId });
+    const { username, firstName } = userInfo;
     if (!userInfo) {
       return res.status(404).json({ success: false, msg: "user not found" });
     }
@@ -184,20 +221,18 @@ router.put("/", async (req, res) => {
     if (profileType === "business") {
       if (members.length > 20) {
         return res.status(200).json({
-            success: false,
-            errors: "business users can't  add more than 20 members",
-            message: "members limit reached",
-          });
+          success: false,
+          errors: "business users can't  add more than 20 members",
+          message: "members limit reached",
+        });
       }
     } else {
       if (members.length > 5) {
-        return res
-          .status(200)
-          .json({
-            success: false,
-            errors: "personal users can't  add more than 5 members",
-            message: "members limit reached",
-          });
+        return res.status(200).json({
+          success: false,
+          errors: "personal users can't  add more than 5 members",
+          message: "members limit reached",
+        });
       }
     }
 
@@ -216,6 +251,17 @@ router.put("/", async (req, res) => {
       });
     }
 
+    const existingMembers = []; //check if user existt
+    const newMembers = [];
+    for (const memberId of members) {
+      const memberExists = group.members.includes(memberId);
+      if (memberExists) {
+        existingMembers.push(memberId);
+      } else {
+        newMembers.push(memberId);
+      }
+    }
+
     group.groupName = groupName ? groupName : group.groupName;
     group.image = image ? image : group.image;
     group.members = members ? members : group.members;
@@ -226,35 +272,45 @@ router.put("/", async (req, res) => {
       message: "update successfully",
       success: true,
     });
+    await sendAddGroupNotification({
+      newMembers,
+      userName: username ?? firstName,
+      groupId,
+      groupName: groupName ? groupName : group.groupName,
+    });
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ message: error.message, success: false });
   }
 });
 
-router.post("/leave/:id", auth , leaveValidator  ,  async (req, res) => {
+router.post("/leave/:id", auth, leaveValidator, async (req, res) => {
   const { id: memberId } = req.params;
-  const {groupId} = req.body
+  const { groupId } = req.body;
   // console.log(memberId, groupId ,"yeshh");
   const loggedInUserId = req.user.id.toString();
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.errors[0].msg, success: false });
+    return res
+      .status(400)
+      .json({ errors: errors.errors[0].msg, success: false });
   }
   try {
     const userInfo = await User.findById({ _id: loggedInUserId });
     if (!userInfo) {
       return res.status(404).json({ success: false, msg: "user not found" });
     }
-  //  console.log(userInfo)
+    //  console.log(userInfo)
     const group = await chatroom.findById({ _id: groupId });
     if (!group) {
-      return res.status(404).json({ message: "no group found", success: false });
+      return res
+        .status(404)
+        .json({ message: "no group found", success: false });
     }
 
-    const { members , admin , groupName} = group;
-     
-    if (!members.includes(memberId) && memberId !==admin) {
+    const { members, admin, groupName } = group;
+
+    if (!members.includes(memberId) && memberId !== admin) {
       return res.status(400).json({
         message: "You are not a member of this group.",
         success: false,
@@ -269,15 +325,15 @@ router.post("/leave/:id", auth , leaveValidator  ,  async (req, res) => {
     }
 
     let updateRecords;
-    if(memberId===admin){
-      group.admin = group.members[0] || null
-      updateRecords = await group.save()
-    }  else{
+    if (memberId === admin) {
+      group.admin = group.members[0] || null;
+      updateRecords = await group.save();
+    } else {
       updateRecords = await chatroom.findOneAndUpdate(
         { _id: groupId },
         { $pull: { members: memberId } },
         { new: true }
-      );      
+      );
     }
 
     res.status(200).json({

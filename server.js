@@ -244,7 +244,7 @@ io.on("connection", (socket) => {
       userchatroom.text = text ? text : image || video;
       userchatroom.type = type ? type : null;
       await userchatroom.save();
-// if reel than means it reelmail
+      // if reel than means it reelmail
       const newMessage = new chatMessage({
         roomId: roomId,
         user: user._id,
