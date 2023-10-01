@@ -352,4 +352,16 @@ router.post("/leave/:id", auth, leaveValidator, async (req, res) => {
   }
 });
 
+router.post("/coins", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    user.subscriptionType.reelCoin = user.subscriptionType.reelCoin - 0.25;
+    await user.save();
+    res.json({ user, msg: "Coins Used", status: 200 });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Server error");
+  }
+});
+
 module.exports = router;

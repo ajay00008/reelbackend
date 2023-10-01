@@ -92,12 +92,13 @@ router.post("/",  async (req, res) => {
     }
     try {
       const user = await User.findById(userId).select("-password");
-      if(user.subscriptionType.reelCoin < 0.25){
+      if(user?.subscriptionType?.reelCoin < 0.25){
         return res.status(403).json({message:`${user.username || user.firstName || 'unknown'} have not enough reel coins to watch this video` , errors: "NotEnoughCoinsError", success:false})
       }    
       const reelVideoEntry = await chatMessage.findOneAndUpdate(
         {
-          _id:messageId
+          _id:messageId,
+          "reelWatch.user": { $ne: loggedInUserId }, // Check if user is not in the reelWatch array
         },
         {        
           $push: {
@@ -111,7 +112,7 @@ router.post("/",  async (req, res) => {
         }
       );  
       if(!reelVideoEntry){
-        return res.status(404).json({message: "The requested video was not found." , errors:'video not found', success:false})
+        return res.status(200).json({message: "The user already seen the video" ,  success:true})
       }    
       user.subscriptionType.reelCoin = user.subscriptionType.reelCoin - 0.25;
       await user.save();
