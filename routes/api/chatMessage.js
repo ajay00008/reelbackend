@@ -30,6 +30,8 @@ router.get("/:id", async (req, res) => {
             username: "$user.username",
             fcmToken: "$user.fcmToken",
             avatar: "$user.media", // Rename "media" to "avatar"
+            // subscription:"$user.subscription",
+            subscriptionType:"$user.subscriptionType"           
           },
           createdAt:"$date" ,
           text:1,
@@ -38,7 +40,8 @@ router.get("/:id", async (req, res) => {
           video:1,
           reel:1,
           isReelCompleted:1,
-          reelVideo:1
+          reelVideo:1,
+          reelWatch:1
         },
       },
       { $sort: { createdAt: -1 } },
@@ -80,6 +83,44 @@ router.post("/",  async (req, res) => {
     }
   });
   
+  router.post("/watchVideo/:messageId", async (req, res) => {
+    const { messageId }= req.params
+    const {userId} = req.body
+    const loggedInUserId = req.user.id
+    if(!userId){
+      return res.status(422).json({message:'validation error' , errors :"userId is required", success : false})
+    }
+    try {
+      const user = await User.findById(userId).select("-password");
+      if(user.subscriptionType.reelCoin < 0.25){
+        return res.status(403).json({message:`${user.username || user.firstName || 'unknown'} have not enough reel coins to watch this video` , errors: "NotEnoughCoinsError", success:false})
+      }    
+      const reelVideoEntry = await chatMessage.findOneAndUpdate(
+        {
+          _id:messageId
+        },
+        {        
+          $push: {
+            reelWatch: {
+              user:loggedInUserId,
+            },
+          },
+        }, 
+        {
+          new: true
+        }
+      );  
+      if(!reelVideoEntry){
+        return res.status(404).json({message: "The requested video was not found." , errors:'video not found', success:false})
+      }    
+      user.subscriptionType.reelCoin = user.subscriptionType.reelCoin - 0.25;
+      await user.save();
+      res.status(201).json({reelVideo:reelVideoEntry ,  msg: "Coins Used", status: 200 , success:true , user});
+    } catch (err) {
+      console.log(err);
+      res.status(500).send("Server error");
+    }
+  });
 
 
 

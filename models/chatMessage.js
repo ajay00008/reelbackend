@@ -40,6 +40,18 @@ const ChatMessageSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    reelWatch: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "user",
+        },
+        visitTime: {
+          type: Date,
+          default: new Date().toLocaleString(),
+        },
+      },
+    ],
   },
   {
     timestamps: true,

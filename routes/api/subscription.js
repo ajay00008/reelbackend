@@ -42,6 +42,7 @@ router.post('/subscribe', auth, async (req, res) => {
     switch (package) {
       case "GOLD":
       case "COINS":
+        user.subscription = true
         user.subscriptionType.reelCoin += 20; // Add 20 coins to the existing balance
         user.subscriptionType.subType = package; 
         console.log(user, "last");
@@ -49,6 +50,7 @@ router.post('/subscribe', auth, async (req, res) => {
         res.json({ user, msg: `${package} Subscription Added`, status: 200 });
         break;
       case "BUSINESS": // Add the case for BUSINESS package
+        user.subscription = true
         user.subscriptionType.reelCoin += 50; // Add 50 coins to the existing balance
         user.subscriptionType.subType = package; 
         await user.save();
