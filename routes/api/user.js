@@ -91,14 +91,13 @@ router.post("/unfollow/:id", auth, async (req, res) => {
     followerUser.followers = followerUser?.followers.filter(id => id.toString() !== req.user.id);
     await followerUser.save();
     
-    const oldNotification = await Notification.findOne({
+    // Delete all notifications that match the condition
+    await Notification.deleteMany({
       user: req.params.id,
       otherUser: loggedInUserId,
-      type:"profile"
-     })
-     if(oldNotification){
-      await Notification.findByIdAndDelete(oldNotification?._id)
-     }
+      type: "profile"
+    });
+
     return res.json({ status: 200, msg: "Unfollowed" });
   } catch (err) {
     console.log(err.message);
