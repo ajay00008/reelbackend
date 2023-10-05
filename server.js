@@ -279,6 +279,7 @@ io.on("connection", (socket) => {
             chatroom: roomId,
             user: memberId,
             type: "group",
+            otherUser:sender?._id
           })
           await userNotification.save()             
         }
