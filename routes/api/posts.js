@@ -18,6 +18,7 @@ const {
 } = require("../../utils/validators/messageValidator");
 const { Types } = require("mongoose");
 const { findUserByIdentifier } = require("../../utils/helpers");
+const { rateLimit } = require("express-rate-limit");
 
 // Create Post
 router.post("/", auth, async (req, res) => {
@@ -283,7 +284,12 @@ router.get("/stories", auth, async (req, res) => {
       user: { $nin: [...blockedUserIds, ...blockedBy] },
     })
       .sort({ date: -1 })
-      .populate("user");
+      .populate("user").populate({
+        path: "views.user", // Populate the "views.user" field
+        select: "_id media",     // Include only the user's ID
+    })
+
+      ;
     // console.log(allStories, "all");
     const otherUserStories = allStories.filter((story) => {
       if (story.user === null) {
@@ -303,9 +309,19 @@ router.get("/stories", auth, async (req, res) => {
       if (index > -1) {
         var story_id = otherUserStories[i]._id;
         var story_image = `${otherUserStories[i].media}`;
+        var views = otherUserStories[i].views
+        let isViewed = false 
+        if(views?.length){
+          const viewedByUser= otherUserStories[i]?.views.find(view=>view.user?._id.toString() == userId.toString())
+          if(viewedByUser){
+            isViewed=true
+          }
+        }
         var newStory = {
           story_id,
           story_image,
+          views,
+          isViewed
         };
         totalRecords[index].stories.push(newStory);
       } else {
@@ -316,9 +332,19 @@ router.get("/stories", auth, async (req, res) => {
           : "https://t4.ftcdn.net/jpg/03/59/58/91/360_F_359589186_JDLl8dIWoBNf1iqEkHxhUeeOulx0wOC5.jpg";
         var story_id = otherUserStories[i]._id;
         var story_image = `${otherUserStories[i].media}`;
+        var views = otherUserStories[i].views
+        let isViewed = false 
+        if(views?.length){
+          const viewedByUser= otherUserStories[i]?.views.find(view=>view.user?._id.toString() == userId.toString())
+          if(viewedByUser){
+            isViewed=true
+          }
+        }
         var newStory = {
           story_id,
           story_image,
+          views,
+          isViewed
         };
         var newObj = {
           user_id,
@@ -366,6 +392,47 @@ router.get("/stories", auth, async (req, res) => {
   }
 });
 
+const storyViewLimiter = rateLimit({
+  windowMs: 15 * 1000, // 20 seconds
+  max: 1, // Limit to 1 request
+  message: { error: 'You are viewing this story too frequently. Please try again later.' },
+  statusCode:200
+});
+
+// Route to mark a story as viewed
+router.get('/stories/:postId/view', auth ,storyViewLimiter , async (req, res) => {
+  const loggedInUserId =  req.user.id;
+  const postId = req.params.postId;
+  try {
+      // Check if the user has already viewed the story within the last X minutes (adjust the time frame as needed)
+      const post = await Post.findOne({
+          _id: postId,
+          views: {
+              $elemMatch: {
+                  user: loggedInUserId,
+              },
+          },
+      });
+
+      if (post) {
+          return res.status(200).json({ message: 'Story already viewed by this user' });
+      }
+
+      // Add the user to the views array
+      await Post.findByIdAndUpdate(
+          postId,
+          { $push: { views: { user: loggedInUserId } } },
+          { new: true }
+      );
+
+      res.status(201).json({ message: 'Story viewed successfully' ,success:true });
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
 router.get("/userStory/:id", auth , async (req, res) => {
   const userId = req.params.id || '';
   try {
@@ -387,6 +454,7 @@ router.get("/userStory/:id", auth , async (req, res) => {
           _id: 0,
           story_id: 1,
           story_image: 1,
+          views:1
         },
       },
     ]);

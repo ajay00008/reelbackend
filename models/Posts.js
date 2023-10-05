@@ -83,6 +83,18 @@ const PostSchema = new mongoose.Schema({
             ]
         }
     ],
+    views: [
+        {
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'user',
+            },
+            viewedAt: {
+                type: Date,
+                default: new Date().toLocaleString(),
+            },
+        },
+    ],
     date:{
         type:Date,
         default: Date.now
