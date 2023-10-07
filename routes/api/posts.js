@@ -395,12 +395,13 @@ router.get("/stories", auth, async (req, res) => {
 const storyViewLimiter = rateLimit({
   windowMs: 15 * 1000, // 15 seconds
   max: 1, // Limit to 1 request
+  keyGenerator: (req) => req.params.postId,         // Rate limit based on postId
   message: { message: 'Story viewed Successfully' , success:true },
   statusCode:200
 });
 
 // Route to mark a story as viewed
-router.get('/stories/:postId/view', auth , async (req, res) => {
+router.get('/stories/:postId/view', auth , storyViewLimiter , async (req, res) => {
   const loggedInUserId =  req.user.id;
   const postId = req.params.postId;
   try {
