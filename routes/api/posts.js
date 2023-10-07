@@ -19,6 +19,8 @@ const {
 const { Types } = require("mongoose");
 const { findUserByIdentifier } = require("../../utils/helpers");
 const { rateLimit } = require("express-rate-limit");
+const ip = require("express-ip");
+
 
 // Create Post
 router.post("/", auth, async (req, res) => {
@@ -395,11 +397,12 @@ router.get("/stories", auth, async (req, res) => {
 const storyViewLimiter = rateLimit({
   windowMs: 15 * 1000, // 15 seconds
   max: 1, // Limit to 1 request
-  keyGenerator: (req) => req.params.postId,         // Rate limit based on postId
+  keyGenerator: (req) => `${req.ip}-${req.params.postId}`, // Rate limit based on IP and postId
   message: { message: 'Story viewed Successfully' , success:true },
   statusCode:200
 });
 
+router.use(ip().getIpInfoMiddleware);
 // Route to mark a story as viewed
 router.get('/stories/:postId/view', auth , storyViewLimiter , async (req, res) => {
   const loggedInUserId =  req.user.id;
