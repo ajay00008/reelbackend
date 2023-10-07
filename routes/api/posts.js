@@ -400,7 +400,7 @@ const storyViewLimiter = rateLimit({
 });
 
 // Route to mark a story as viewed
-router.get('/stories/:postId/view', auth ,storyViewLimiter , async (req, res) => {
+router.get('/stories/:postId/view', auth , async (req, res) => {
   const loggedInUserId =  req.user.id;
   const postId = req.params.postId;
   try {
