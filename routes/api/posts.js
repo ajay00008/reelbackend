@@ -393,9 +393,9 @@ router.get("/stories", auth, async (req, res) => {
 });
 
 const storyViewLimiter = rateLimit({
-  windowMs: 15 * 1000, // 20 seconds
+  windowMs: 15 * 1000, // 15 seconds
   max: 1, // Limit to 1 request
-  message: { error: 'You are viewing this story too frequently. Please try again later.' },
+  message: { message: 'Story viewed Successfully' , success:true },
   statusCode:200
 });
 
