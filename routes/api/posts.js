@@ -10,7 +10,11 @@ const ffmpeg = require("fluent-ffmpeg");
 ffmpeg.setFfmpegPath(ffmpegPath);
 const fs = require("fs");
 // const sendFirebaseNotifications = require("../../middleware/notifications");
-const {sendMultipleNotifications , sendFirebaseNotifications , sendNotifications} = require("../../middleware/notifications");
+const {
+  sendMultipleNotifications,
+  sendFirebaseNotifications,
+  sendNotifications,
+} = require("../../middleware/notifications");
 const Notification = require("../../models/Notification");
 const Message = require("../../models/Message");
 const {
@@ -20,7 +24,6 @@ const { Types } = require("mongoose");
 const { findUserByIdentifier } = require("../../utils/helpers");
 const { rateLimit } = require("express-rate-limit");
 const ip = require("express-ip");
-
 
 // Create Post
 router.post("/", auth, async (req, res) => {
@@ -199,17 +202,21 @@ router.get("/saved", auth, async (req, res) => {
 
 router.get("/user/:id", auth, async (req, res) => {
   try {
-    const user = await findUserByIdentifier(req.params.id);    
+    const user = await findUserByIdentifier(req.params.id);
     if (!user) {
-      return res.status(404).json({ error:'unknown user', message: "User not found" , success : false  });
+      return res
+        .status(404)
+        .json({
+          error: "unknown user",
+          message: "User not found",
+          success: false,
+        });
     }
 
-    const post = await Post.find({ user: user._id})
-      .populate("user")
-      .populate({
-        path: "comments.user",
-        model: "user",
-      });
+    const post = await Post.find({ user: user._id }).populate("user").populate({
+      path: "comments.user",
+      model: "user",
+    });
     return res.json({ post, status: 200 });
   } catch (err) {
     console.log(err.message);
@@ -286,12 +293,12 @@ router.get("/stories", auth, async (req, res) => {
       user: { $nin: [...blockedUserIds, ...blockedBy] },
     })
       .sort({ date: -1 })
-      .populate("user").populate({
+      .populate("user")
+      .populate({
         path: "views.user", // Populate the "views.user" field
-        select: "_id media",     // Include only the user's ID
-    })
+        select: "_id media", // Include only the user's ID
+      });
 
-      ;
     // console.log(allStories, "all");
     const otherUserStories = allStories.filter((story) => {
       if (story.user === null) {
@@ -311,19 +318,21 @@ router.get("/stories", auth, async (req, res) => {
       if (index > -1) {
         var story_id = otherUserStories[i]._id;
         var story_image = `${otherUserStories[i].media}`;
-        var views = otherUserStories[i].views
-        let isViewed = false 
-        if(views?.length){
-          const viewedByUser= otherUserStories[i]?.views.find(view=>view.user?._id.toString() == userId.toString())
-          if(viewedByUser){
-            isViewed=true
+        var views = otherUserStories[i].views;
+        let isViewed = false;
+        if (views?.length) {
+          const viewedByUser = otherUserStories[i]?.views.find(
+            (view) => view.user?._id.toString() == userId.toString()
+          );
+          if (viewedByUser) {
+            isViewed = true;
           }
         }
         var newStory = {
           story_id,
           story_image,
           views,
-          isViewed
+          isViewed,
         };
         totalRecords[index].stories.push(newStory);
       } else {
@@ -334,19 +343,21 @@ router.get("/stories", auth, async (req, res) => {
           : "https://t4.ftcdn.net/jpg/03/59/58/91/360_F_359589186_JDLl8dIWoBNf1iqEkHxhUeeOulx0wOC5.jpg";
         var story_id = otherUserStories[i]._id;
         var story_image = `${otherUserStories[i].media}`;
-        var views = otherUserStories[i].views
-        let isViewed = false 
-        if(views?.length){
-          const viewedByUser= otherUserStories[i]?.views.find(view=>view.user?._id.toString() == userId.toString())
-          if(viewedByUser){
-            isViewed=true
+        var views = otherUserStories[i].views;
+        let isViewed = false;
+        if (views?.length) {
+          const viewedByUser = otherUserStories[i]?.views.find(
+            (view) => view.user?._id.toString() == userId.toString()
+          );
+          if (viewedByUser) {
+            isViewed = true;
           }
         }
         var newStory = {
           story_id,
           story_image,
           views,
-          isViewed
+          isViewed,
         };
         var newObj = {
           user_id,
@@ -385,6 +396,21 @@ router.get("/stories", auth, async (req, res) => {
         : "https://t4.ftcdn.net/jpg/03/59/58/91/360_F_359589186_JDLl8dIWoBNf1iqEkHxhUeeOulx0wOC5.jpg",
       stories: userStories,
     };
+    
+    // Add a flag isAllViewed to each user's stories to check if all their stories are viewed
+    for (let i = 0; i < totalRecords.length; i++) {
+      let isAllViewed = totalRecords[i].stories.every(
+        (story) => story.isViewed
+      );
+      totalRecords[i].isAllViewed = isAllViewed;
+    }
+
+    // Sort the totalRecords array so that users with all stories viewed come last
+    totalRecords.sort((a, b) => {
+      if (a.isAllViewed && !b.isAllViewed) return 1; // Move users with all stories viewed to the end
+      if (!a.isAllViewed && b.isAllViewed) return -1; // Move users with unviewed stories to the front
+      return 0;
+    });
 
     return res.json({ user_data: userData, otherStories: totalRecords });
     // return res.json({ allStories , otherUserStories });
@@ -398,49 +424,57 @@ const storyViewLimiter = rateLimit({
   windowMs: 15 * 1000, // 15 seconds
   max: 1, // Limit to 1 request
   keyGenerator: (req) => `${req.ip}-${req.params.postId}`, // Rate limit based on IP and postId
-  message: { message: 'Story viewed Successfully' , success:true },
-  statusCode:200
+  message: { message: "Story viewed Successfully", success: true },
+  statusCode: 200,
 });
 
 router.use(ip().getIpInfoMiddleware);
 // Route to mark a story as viewed
-router.get('/stories/:postId/view', auth , storyViewLimiter , async (req, res) => {
-  const loggedInUserId =  req.user.id;
-  const postId = req.params.postId;
-  try {
+router.get(
+  "/stories/:postId/view",
+  auth,
+  storyViewLimiter,
+  async (req, res) => {
+    const loggedInUserId = req.user.id;
+    const postId = req.params.postId;
+    try {
       // Check if the user has already viewed the story within the last X minutes (adjust the time frame as needed)
       const post = await Post.findOne({
-          _id: postId,
-          views: {
-              $elemMatch: {
-                  user: loggedInUserId,
-              },
+        _id: postId,
+        views: {
+          $elemMatch: {
+            user: loggedInUserId,
           },
+        },
       });
 
       if (post) {
-          return res.status(200).json({ message: 'Story already viewed by this user' });
+        return res
+          .status(200)
+          .json({ message: "Story already viewed by this user" });
       }
 
       // Add the user to the views array
       await Post.findByIdAndUpdate(
-          postId,
-          { $push: { views: { user: loggedInUserId } } },
-          { new: true }
+        postId,
+        { $push: { views: { user: loggedInUserId } } },
+        { new: true }
       );
 
-      res.status(201).json({ message: 'Story viewed successfully' ,success:true });
-  } catch (err) {
+      res
+        .status(201)
+        .json({ message: "Story viewed successfully", success: true });
+    } catch (err) {
       console.error(err);
-      res.status(500).json({ message: 'Internal server error' });
+      res.status(500).json({ message: "Internal server error" });
+    }
   }
-});
+);
 
-
-router.get("/userStory/:id", auth , async (req, res) => {
-  const userId = req.params.id || '';
+router.get("/userStory/:id", auth, async (req, res) => {
+  const userId = req.params.id || "";
   try {
-    const user = await findUserByIdentifier(userId);    
+    const user = await findUserByIdentifier(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -458,7 +492,7 @@ router.get("/userStory/:id", auth , async (req, res) => {
           _id: 0,
           story_id: 1,
           story_image: 1,
-          views:1
+          views: 1,
         },
       },
     ]);
@@ -471,7 +505,7 @@ router.get("/userStory/:id", auth , async (req, res) => {
         : "https://t4.ftcdn.net/jpg/03/59/58/91/360_F_359589186_JDLl8dIWoBNf1iqEkHxhUeeOulx0wOC5.jpg",
       stories: userStories,
     };
-    return res.json({ userStories: userData , success:true});
+    return res.json({ userStories: userData, success: true });
   } catch (error) {
     console.log(err.message, "fetching stories");
     res.status(500).send({ message: "Server Error", success: false });
@@ -585,14 +619,14 @@ router.put("/like/:id", auth, async (req, res) => {
     } else {
       post.likes.unshift({ user: req.user.id });
       await post.save();
-      if(loggedInUserId !== postUserId){
+      if (loggedInUserId !== postUserId) {
         sendFirebaseNotifications(
           `${user.firstName} Liked Your Post`,
           post.user.fcmToken,
           post?._id.toString(),
           "post"
         );
-    
+
         var userNotification = new Notification({
           message: `${user.firstName} Liked Your Post`,
           post: post?._id,
@@ -654,7 +688,7 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-  const loggedInUserId = req.user?.id;
+    const loggedInUserId = req.user?.id;
     var notificationUsers = [];
     try {
       const user = await User.findById(req.user.id).select("-password");
@@ -666,8 +700,8 @@ router.post(
       const postUserId = post?.user?._id?.toString();
       post.comments.unshift(newComment);
       await post.save();
-      
-      if(loggedInUserId !== postUserId){
+
+      if (loggedInUserId !== postUserId) {
         sendFirebaseNotifications(
           `${user.firstName} Commented On Your Post`,
           post.user.fcmToken,
@@ -681,9 +715,9 @@ router.post(
           otherUser: user?._id,
           type: "post",
         });
-         await userNotification.save();
+        await userNotification.save();
       }
-    return res.json({ post, msg: "Comment Added", status: 200 });
+      return res.json({ post, msg: "Comment Added", status: 200 });
     } catch (err) {
       console.log(err.message);
       res.status(500).send("Server Error");

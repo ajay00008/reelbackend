@@ -47,7 +47,7 @@ app.use("media/image", express.static("image"));
 app.use("media/video", express.static("image"));
 
 app.get("/", async (req, res) => {
-  res.json({message:"Reel Tok Running successfully-pipelinedone"});
+  res.json({message:"Reel Tok Running successfully-pipelinedones"});
 });
 
 app.get("/:username", async (req, res) => {
