@@ -279,6 +279,8 @@ router.get("/story", auth, async (req, res) => {
 });
 
 router.get("/stories", auth, async (req, res) => {
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
   try {
     const userId = req.user.id;
     const user = await User.findById(userId);
@@ -291,6 +293,7 @@ router.get("/stories", auth, async (req, res) => {
     const allStories = await Post.find({
       postType: "Story",
       user: { $nin: [...blockedUserIds, ...blockedBy] },
+      date: { $gte: twentyFourHoursAgo},
     })
       .sort({ date: -1 })
       .populate("user")
@@ -319,6 +322,7 @@ router.get("/stories", auth, async (req, res) => {
         var story_id = otherUserStories[i]._id;
         var story_image = `${otherUserStories[i].media}`;
         var views = otherUserStories[i].views;
+        var date = otherUserStories[i].date;
         let isViewed = false;
         if (views?.length) {
           const viewedByUser = otherUserStories[i]?.views.find(
@@ -333,6 +337,7 @@ router.get("/stories", auth, async (req, res) => {
           story_image,
           views,
           isViewed,
+          date
         };
         totalRecords[index].stories.push(newStory);
       } else {
@@ -344,6 +349,8 @@ router.get("/stories", auth, async (req, res) => {
         var story_id = otherUserStories[i]._id;
         var story_image = `${otherUserStories[i].media}`;
         var views = otherUserStories[i].views;
+        var date = otherUserStories[i].date;
+
         let isViewed = false;
         if (views?.length) {
           const viewedByUser = otherUserStories[i]?.views.find(
@@ -358,6 +365,7 @@ router.get("/stories", auth, async (req, res) => {
           story_image,
           views,
           isViewed,
+          date
         };
         var newObj = {
           user_id,
@@ -396,7 +404,7 @@ router.get("/stories", auth, async (req, res) => {
         : "https://t4.ftcdn.net/jpg/03/59/58/91/360_F_359589186_JDLl8dIWoBNf1iqEkHxhUeeOulx0wOC5.jpg",
       stories: userStories,
     };
-    
+
     // Add a flag isAllViewed to each user's stories to check if all their stories are viewed
     for (let i = 0; i < totalRecords.length; i++) {
       let isAllViewed = totalRecords[i].stories.every(
