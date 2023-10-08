@@ -452,7 +452,15 @@ router.get("/stories", auth, async (req, res) => {
 const storyViewLimiter = rateLimit({
   windowMs: 15 * 1000, // 15 seconds
   max: 1, // Limit to 1 request
-  keyGenerator: (req) => `${req.ip}-${req.params.postId}`, // Rate limit based on IP and postId
+  keyGenerator: (req) => {
+    // Use the user's ID for rate limiting (assuming you have access to req.user)
+    if (req.user && req.user.id) {
+      return `${req.user.id}-${req.params.postId}`;
+    } else {
+      // If the user is not authenticated or doesn't have an ID, rate limit based on IP
+      return `${req.ip}-${req.params.postId}`;
+    }
+  },
   message: { message: "Story viewed Successfully", success: true },
   statusCode: 200,
 });
