@@ -204,13 +204,11 @@ router.get("/user/:id", auth, async (req, res) => {
   try {
     const user = await findUserByIdentifier(req.params.id);
     if (!user) {
-      return res
-        .status(404)
-        .json({
-          error: "unknown user",
-          message: "User not found",
-          success: false,
-        });
+      return res.status(404).json({
+        error: "unknown user",
+        message: "User not found",
+        success: false,
+      });
     }
 
     const post = await Post.find({ user: user._id }).populate("user").populate({
@@ -293,7 +291,7 @@ router.get("/stories", auth, async (req, res) => {
     const allStories = await Post.find({
       postType: "Story",
       user: { $nin: [...blockedUserIds, ...blockedBy] },
-      date: { $gte: twentyFourHoursAgo},
+      date: { $gte: twentyFourHoursAgo },
     })
       .sort({ date: -1 })
       .populate("user")
@@ -337,7 +335,7 @@ router.get("/stories", auth, async (req, res) => {
           story_image,
           views,
           isViewed,
-          date
+          date,
         };
         totalRecords[index].stories.push(newStory);
       } else {
@@ -365,7 +363,7 @@ router.get("/stories", auth, async (req, res) => {
           story_image,
           views,
           isViewed,
-          date
+          date,
         };
         var newObj = {
           user_id,
@@ -379,7 +377,13 @@ router.get("/stories", auth, async (req, res) => {
 
     // Get stories of the login user
     const userStories = await Post.aggregate([
-      { $match: { user: new Types.ObjectId(userId), postType: "Story" } },
+      {
+        $match: {
+          user: new Types.ObjectId(userId),
+          postType: "Story",
+          date: { $gte: twentyFourHoursAgo },
+        },
+      },
       { $sort: { date: -1 } },
       {
         $addFields: {
