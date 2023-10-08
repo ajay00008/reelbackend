@@ -293,11 +293,11 @@ router.get("/stories", auth, async (req, res) => {
       user: { $nin: [...blockedUserIds, ...blockedBy] },
       date: { $gte: twentyFourHoursAgo },
     })
-      .sort({ date: -1 })
+      // .sort({ date: -1 })
       .populate("user")
       .populate({
         path: "views.user", // Populate the "views.user" field
-        select: "_id media", // Include only the user's ID
+        select: "_id media username", // Include only the user's ID
       });
 
     // console.log(allStories, "all");
@@ -384,7 +384,7 @@ router.get("/stories", auth, async (req, res) => {
           date: { $gte: twentyFourHoursAgo },
         },
       },
-      { $sort: { date: -1 } },
+      // { $sort: { date: -1 } },
       {
         $addFields: {
           story_id: "$_id",
@@ -396,9 +396,25 @@ router.get("/stories", auth, async (req, res) => {
           _id: 0,
           story_id: 1,
           story_image: 1,
+          views: 1,
+          date: 1,
         },
       },
     ]);
+    await Post.populate(userStories, {
+      path: "views.user",
+      model: "user",
+      select: "_id media username", // Include only the user's ID
+    });
+    // Add a flag isViewed to each story in the userStories array
+    userStories.forEach((story) => {
+      story.isViewed = !!story.views.find(
+        (view) => view.user?._id.toString() === userId.toString()
+      );
+    });
+
+    // Check if all stories are viewed
+    const isAllViewed = userStories.every((story) => story.isViewed);
 
     const userData = {
       user_id: user._id,
@@ -407,6 +423,7 @@ router.get("/stories", auth, async (req, res) => {
         ? `${user.media}`
         : "https://t4.ftcdn.net/jpg/03/59/58/91/360_F_359589186_JDLl8dIWoBNf1iqEkHxhUeeOulx0wOC5.jpg",
       stories: userStories,
+      isAllViewed
     };
 
     // Add a flag isAllViewed to each user's stories to check if all their stories are viewed
