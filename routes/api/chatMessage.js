@@ -117,12 +117,14 @@ router.post("/",  async (req, res) => {
           new: true
         }
       );  
-      if(!reelVideoEntry){
-        return res.status(200).json({message: "The user already seen the video" ,  success:true})
-      }    
+      // if(!reelVideoEntry){
+      //   return res.status(200).json({message: "The user already seen the video" ,  success:true})
+      // }    
       user.subscriptionType.reelCoin = user.subscriptionType.reelCoin - 0.25;
       await user.save();
-      await sendVideoWatchedMail({email:user.email , username:loggedInUserInfo?.username ?? loggedInUserInfo?.firstName})
+      console.log("hiii")
+     const isSendMail =  await sendVideoWatchedMail({email:user.email , username:loggedInUserInfo?.username ?? loggedInUserInfo?.firstName})
+     console.log(isSendMail ,'hiii')
       await sendFirebaseNotifications(
         `${loggedInUserInfo?.username || loggedInUserInfo?.firstName} watched your reel in Group`,
          user.fcmToken,
