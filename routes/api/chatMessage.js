@@ -90,6 +90,7 @@ router.post("/",  async (req, res) => {
     const { messageId }= req.params
     const {userId} = req.body
     const loggedInUserId = req.user.id
+    console.log("hiii wat")
     if(!userId){
       return res.status(422).json({message:'validation error' , errors :"userId is required", success : false})
     }
