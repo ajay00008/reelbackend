@@ -86,7 +86,7 @@ router.post("/",  async (req, res) => {
     }
   });
   
-  router.post("/watchVideo/:messageId", auth , async (req, res) => {
+  router.post("/watchVideo/:messageId" , async (req, res) => {
     const { messageId }= req.params
     const {userId} = req.body
     const loggedInUserId = req.user.id
