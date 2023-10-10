@@ -1,6 +1,9 @@
 const { Router } = require("express");
 const chatMessage = require("../../models/chatMessage");
 const User = require("../../models/User");
+const { sendVideoWatchedMail } = require("../../utils/mailer");
+const Notification = require("../../models/Notification");
+const { sendFirebaseNotifications } = require("../../middleware/notifications");
 
 const router = Router();
 
@@ -83,7 +86,7 @@ router.post("/",  async (req, res) => {
     }
   });
   
-  router.post("/watchVideo/:messageId", async (req, res) => {
+  router.post("/watchVideo/:messageId", auth , async (req, res) => {
     const { messageId }= req.params
     const {userId} = req.body
     const loggedInUserId = req.user.id
@@ -92,6 +95,9 @@ router.post("/",  async (req, res) => {
     }
     try {
       const user = await User.findById(userId).select("-password");
+      const loggedInUserInfo =await User.findById(loggedInUserId).select("-password");
+
+      
       if(user?.subscriptionType?.reelCoin < 0.25){
         return res.status(403).json({message:`${user.username || user.firstName || 'unknown'} have not enough reel coins to watch this video` , errors: "NotEnoughCoinsError", success:false})
       }    
@@ -116,6 +122,21 @@ router.post("/",  async (req, res) => {
       }    
       user.subscriptionType.reelCoin = user.subscriptionType.reelCoin - 0.25;
       await user.save();
+      await sendVideoWatchedMail({email:user.email , username:loggedInUserInfo?.username ?? loggedInUserInfo?.firstName})
+      await sendFirebaseNotifications(
+        `${loggedInUserInfo?.username || loggedInUserInfo?.firstName} watched your reel in Group`,
+         user.fcmToken,
+         JSON.stringify(userchatroom),
+         userchatroom.isGroup ? "group" : "chat"
+          )
+      var userNotification = new Notification({
+        message: `${loggedInUserInfo?.username || loggedInUserInfo?.firstName} watched your reel in Group`,
+        chatMessage: messageId,
+        user: userId,
+        type: "group",
+        otherUser:loggedInUserId
+      })
+      await userNotification.save()
       res.status(201).json({reelVideo:reelVideoEntry ,  msg: "Coins Used", status: 200 , success:true , user});
     } catch (err) {
       console.log(err);

@@ -31,7 +31,7 @@ router.get("/", auth , async (req, res) => {
       Notification.find({
         user: loggedInUserId,
         date: { $gte: dates.today.start, $lte: dates.today.end },
-      }).populate('user otherUser post chatroom textMessage').populate({
+      }).populate('user otherUser post chatroom textMessage chatMessage').populate({
         path: 'textMessage',
         populate: {
           path: 'sender',
@@ -42,7 +42,7 @@ router.get("/", auth , async (req, res) => {
       Notification.find({
         user: loggedInUserId,
         date: { $gte: dates.yesterday.start, $lte: dates.yesterday.end },
-      }).populate('user otherUser post chatroom textMessage').populate({
+      }).populate('user otherUser post chatroom textMessage chatMessage').populate({
         path: 'textMessage',
         populate: {
           path: 'sender',
@@ -53,7 +53,7 @@ router.get("/", auth , async (req, res) => {
       Notification.find({
         user: loggedInUserId,
         date: { $gte: dates.oneWeekAgo.start, $lte: dates.oneWeekAgo.end },
-      }).populate('user otherUser post chatroom roomId textMessage').populate({
+      }).populate('user otherUser post chatroom roomId textMessage chatMessage').populate({
         path: 'textMessage',
         populate: {
           path: 'sender',
@@ -64,7 +64,7 @@ router.get("/", auth , async (req, res) => {
       Notification.find({
         user: loggedInUserId,
         date: { $gte: dates.lastMonth.start, $lte: dates.lastMonth.end },
-      }).populate('user otherUser post chatroom textMessage').populate({
+      }).populate('user otherUser post chatroom textMessage chatMessage').populate({
         path: 'textMessage',
         populate: {
           path: 'sender',

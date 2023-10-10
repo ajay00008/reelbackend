@@ -30,6 +30,10 @@ const NotificationSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'message' 
     },
+    chatMessage:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'chatMessage'    
+     },
     date:{
         type:Date,
         default: Date.now

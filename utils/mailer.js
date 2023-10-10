@@ -66,6 +66,29 @@ const verifyToken = (token)  => {
   });
 }
 
+const sendVideoWatchedMail =  async ({email , username}) => {
+  try {
+    const mailData = {
+      to: email,
+      subject:"New Reel Video View",
+      html: `<div style="text-align: center;">
+              <p style="color:black">${username} watched your reel video</p>
+             </div>`,
+    };
+    
+    const newMail = await sendMail(mailData);
+    if (!newMail) {
+      return ({ success: false, message: "email not sent" });
+    }
+    return ({
+      success: true,
+      message: `1 new reel mail view`,
+    })
+  } catch (error) {
+    throw new Error({message:"server issue" , success:false})
+  }
+};
+
 const emailVerify =  async (email) => {
   try {
     const { otp, hashedOTP, expirationTime } = await generateAndHashOTP();
@@ -101,5 +124,6 @@ module.exports = {
     verifyOTP,
     createJwtToken,
     verifyToken,
-    emailVerify
+    emailVerify,
+    sendVideoWatchedMail
 }
