@@ -130,7 +130,7 @@ router.post("/",  async (req, res) => {
         `${loggedInUserInfo?.username || loggedInUserInfo?.firstName} watched your reel in Group`,
          user.fcmToken,
          JSON.stringify(userchatroom),
-         userchatroom.isGroup ? "group" : "chat"
+         'group'
           )
       var userNotification = new Notification({
         message: `${loggedInUserInfo?.username || loggedInUserInfo?.firstName} watched your reel in Group`,
