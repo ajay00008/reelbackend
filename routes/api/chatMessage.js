@@ -129,7 +129,7 @@ router.post("/",  async (req, res) => {
       await sendFirebaseNotifications(
         `${loggedInUserInfo?.username || loggedInUserInfo?.firstName} watched your reel in Group`,
          user.fcmToken,
-         JSON.stringify(userchatroom),
+         JSON.stringify(reelVideoEntry),
          'group'
           )
       var userNotification = new Notification({
