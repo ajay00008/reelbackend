@@ -30,7 +30,8 @@ const PostSchema = new mongoose.Schema({
         type:String
     },
     isReelMail:{
-      type:Boolean
+      type:Boolean,
+      default:false
     },
     thumbnail_url:{
         type:String
