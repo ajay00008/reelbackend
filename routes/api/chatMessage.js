@@ -133,6 +133,7 @@ router.post("/",  async (req, res) => {
       var userNotification = new Notification({
         message: `${loggedInUserInfo?.username || loggedInUserInfo?.firstName} watched your reel in Group`,
         chatMessage: messageId,
+        chatroom:reelVideoEntry.roomId,
         user: userId,
         type: "group",
         otherUser:loggedInUserId

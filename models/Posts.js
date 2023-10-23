@@ -29,6 +29,9 @@ const PostSchema = new mongoose.Schema({
     mimeType: {
         type:String
     },
+    isReelMail:{
+      type:Boolean
+    },
     thumbnail_url:{
         type:String
     },

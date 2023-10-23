@@ -27,7 +27,7 @@ const ip = require("express-ip");
 
 // Create Post
 router.post("/", auth, async (req, res) => {
-  const { text, postType, location, media, mimeType } = req.body;
+  const { text, postType, location, media, mimeType , isReelMail } = req.body;
   try {
     const user = await User.findById(req.user.id)
       .select("-password")
@@ -39,6 +39,7 @@ router.post("/", auth, async (req, res) => {
       postType: postType,
       location: location,
       mimeType: mimeType,
+      isReelMail :isReelMail
     });
     const post = await newPost.save();
     var fcmTokens = user.followers?.map((val) => {
