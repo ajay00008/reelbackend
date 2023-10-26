@@ -87,7 +87,19 @@ const PostSchema = new mongoose.Schema({
             ]
         }
     ],
-    views: [
+    reelWatch: [
+        {
+          user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "user",
+          },
+          visitTime: {
+            type: Date,
+            default: new Date().toLocaleString(),
+          },
+        },
+      ],
+    views: [                                        // views means StoryView
         {
             user: {
                 type: mongoose.Schema.Types.ObjectId,

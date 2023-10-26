@@ -239,7 +239,11 @@ io.on("connection", (socket) => {
     });
     const userchatroom = await chatroom.findById({ _id: roomId });
     const sender = await findUserByIdentifier(user?._id);
-    // console.log(userchatroom,"chatrrr")
+    // deduct .25 for video share
+    if(reel && sender.subscriptionType.reelCoin > 0.25 ){
+      sender.subscriptionType.reelCoin = sender.subscriptionType.reelCoin - 0.25
+      await sender.save()
+    }
     if (userchatroom) {
       userchatroom.text = text ? text : image || video;
       userchatroom.type = type ? type : null;

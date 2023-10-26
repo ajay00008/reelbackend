@@ -39,9 +39,16 @@ router.post("/", auth, async (req, res) => {
       postType: postType,
       location: location,
       mimeType: mimeType,
-      isReelMail :isReelMail
+      isReelMail: isReelMail,
     });
     const post = await newPost.save();
+
+    // deduct 0.25 RGC for post Creation
+    if (isReelMail && user?.subscriptionType?.reelCoin > 0.25) {
+      user.subscriptionType.reelCoin = user.subscriptionType.reelCoin - 0.25;
+      await user.save();
+    }
+
     var fcmTokens = user.followers?.map((val) => {
       return val.fcmToken;
     });
@@ -56,6 +63,90 @@ router.post("/", auth, async (req, res) => {
   } catch (err) {
     console.log(err.message);
     res.status(500).send("Server Error");
+  }
+});
+
+router.get("/watchVideo/:postId", auth, async (req, res) => {
+  const { postId } = req.params;
+  const loggedInUserId = req.user?.id;
+
+  try {
+    const post = await Post.findById(postId)
+      .populate({
+        path: "user",
+        select: "username email subscriptionType firstName",
+      })
+      .exec();
+    if (!post || !post.user?._id) {
+      return res.status(404).json({
+        message: !post ? "unknown Post" : "unknown User",
+        success: false,
+      });
+    }
+    if (!post.isReelMail) {
+      return res.status(422).json({
+        error: "unknown post",
+        message: "only reelMail video can watch",
+        success: false,
+      });
+    }
+    const user = post?.user;
+    const loggedInUserInfo = await User.findById(loggedInUserId).select(
+      "-password"
+    );
+
+    if (user?.subscriptionType?.reelCoin < 1) {
+      return res.status(403).json({
+        message: `${
+          user.username || user.firstName || "unknown"
+        } have not enough reel coins to watch this video`,
+        errors: "NotEnoughCoinsError",
+        success: false,
+      });
+    }
+
+    if (loggedInUserInfo?._id.toString() === user?._id?.toString()) {
+      return res.status(200).json({
+        success: true,
+        message: "user will not earn coin by watching his own reelMail posts",
+      });
+    }
+
+    const postReelEntry = await Post.findOneAndUpdate(
+      {
+        _id: postId,
+        "reelWatch.user": { $ne: loggedInUserId }, // Check if user is not in this array of users who watched this post
+      },
+      {
+        $push: {
+          reelWatch: {
+            user: loggedInUserId,
+          },
+        },
+      },
+      {
+        new: true,
+      }
+    );
+    if (!postReelEntry) {
+      return res.status(200).json({
+        message: "The user already seen the video",
+        success: true,
+        post,
+      });
+    }
+
+    //reel watcher will earn 1RGC and the owner of post will deduct coins per watch
+    user.subscriptionType.reelCoin = user?.subscriptionType?.reelCoin - 1;
+    loggedInUserInfo.subscriptionType.reelCoin =
+      loggedInUserInfo?.subscriptionType?.reelCoin + 1;
+
+    await Promise.all([user.save(), loggedInUserInfo.save()]);
+    res.status(201)
+      .json({ message: "1RGC coin Earned", status: 200, success: true });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ errors: "Server error", success: false });
   }
 });
 
@@ -424,7 +515,7 @@ router.get("/stories", auth, async (req, res) => {
         ? `${user.media}`
         : "https://t4.ftcdn.net/jpg/03/59/58/91/360_F_359589186_JDLl8dIWoBNf1iqEkHxhUeeOulx0wOC5.jpg",
       stories: userStories,
-      isAllViewed
+      isAllViewed,
     };
 
     // Add a flag isAllViewed to each user's stories to check if all their stories are viewed
