@@ -132,7 +132,6 @@ router.get("/watchVideo/:postId", auth, async (req, res) => {
       return res.status(200).json({
         message: "The user already seen the video",
         success: true,
-        post,
       });
     }
 
