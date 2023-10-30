@@ -75,7 +75,7 @@ router.get("/watchVideo/:postId", auth, async (req, res) => {
     const post = await Post.findById(postId)
       .populate({
         path: "user",
-        select: "username email subscriptionType firstName",
+        select: "username email subscriptionType firstName fcmToken",
       })
       .exec();
     if (!post || !post.user?._id) {
