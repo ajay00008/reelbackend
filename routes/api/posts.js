@@ -24,6 +24,7 @@ const { Types } = require("mongoose");
 const { findUserByIdentifier } = require("../../utils/helpers");
 const { rateLimit } = require("express-rate-limit");
 const ip = require("express-ip");
+const { sendVideoWatchedMail } = require("../../utils/mailer");
 
 // Create Post
 router.post("/", auth, async (req, res) => {
@@ -141,6 +142,22 @@ router.get("/watchVideo/:postId", auth, async (req, res) => {
       loggedInUserInfo?.subscriptionType?.reelCoin + 1;
 
     await Promise.all([user.save(), loggedInUserInfo.save()]);
+
+    await sendVideoWatchedMail({email:user.email , username:loggedInUserInfo?.username ?? loggedInUserInfo?.firstName})
+    await sendFirebaseNotifications(
+      `${loggedInUserInfo?.username || loggedInUserInfo?.firstName} watched your reel From feed`,
+       user.fcmToken,
+       JSON.stringify(reelVideoEntry),
+       'post'
+        )
+    var userNotification = new Notification({
+      message: `${loggedInUserInfo?.username || loggedInUserInfo?.firstName} watched your reel from feed`,
+      post: postId,
+      user: user._id,
+      type: "post",
+      otherUser:loggedInUserId
+    })
+    await userNotification.save()
     res.status(201)
       .json({ message: "1RGC coin Earned", status: 200, success: true });
   } catch (err) {
