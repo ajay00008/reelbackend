@@ -144,6 +144,7 @@ router.get("/watchVideo/:postId", auth, async (req, res) => {
     await Promise.all([user.save(), loggedInUserInfo.save()]);
 
     await sendVideoWatchedMail({email:user.email , username:loggedInUserInfo?.username ?? loggedInUserInfo?.firstName})
+    console.log(user.fcmToken ,"FCCmm")
     await sendFirebaseNotifications(
       `${loggedInUserInfo?.username || loggedInUserInfo?.firstName} watched your reel From feed`,
        user.fcmToken,
